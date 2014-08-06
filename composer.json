@@ -1,0 +1,37 @@
+{
+	"name": "forumhulp/upload_extension",
+	"type": "phpbb-extension",
+	"description": "Upload extensinsion zip file and copy it to extension folder according to composer.json.",
+	"homepage": "http://forumhulp.com",
+	"version": "3.1.0-rc3",
+	"keywords": ["forumhulp", "phpbb", "extension", "upload", "unzip"],
+	"license": "GPL-2.0",
+	"authors": [
+		{
+			"name": "John Peskens",
+			"username": "John P",
+			"email": "info@forumhulp.com",
+			"role": "Developer"
+		},
+		{
+			"name": "Igor Lavrov",
+			"homepage": "https://github.com/lavigor",
+			"role": "Developer"
+		}
+	],
+	"require": {
+		"php": ">=5.3.3",
+		"phpbb/phpbb": "3.1.*@dev"
+	},
+	"extra": {
+		"display-name": "Upload Extension",
+		"soft-require": {
+           "phpbb/phpbb": "3.1.*@dev"
+        },
+		"version-check": {
+			"host": "forumhulp.com",
+			"directory": "/ext",
+			"filename": "index.php?id=30"
+		}
+	}
+}
