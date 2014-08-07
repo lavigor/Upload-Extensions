@@ -16,7 +16,7 @@ class upload_extensions_module
 	{
 		global $db, $config, $user, $cache, $template, $request, $phpbb_root_path, $phpbb_extension_manager, $phpbb_container;
 
-		$this->page_title = $user->lang['ACP_CRON_STATUS_TITLE'];
+		$this->page_title = $user->lang['ACP_UPLOAD_EXT_TITLE'];
 		$this->tpl_name = 'acp_upload_extensions';
 		
 		if (request_var('action', '') == 'delete')
@@ -35,7 +35,7 @@ class upload_extensions_module
 			$template->assign_vars(array('FILENAME' => substr($file, strrpos($file, '/') + 1),'CONTENT' => highlight_string($string, true)));
 		}
 
-		$ext_name = 'profile-guestbook-ext-master.zip';
+		$ext_name = 'boardrules-1.0.0-b2.zip';
 		$zip = new \ZipArchive;
 		$res = $zip->open($phpbb_root_path . 'ext/' . $ext_name);
 		if ($res === true) 
@@ -58,6 +58,14 @@ class upload_extensions_module
 					$this->rrmdir($phpbb_root_path . 'ext/tmp');
 					
 					$template->assign_vars(array('UPLOAD' => 'Package ' . $display_name . ' uploaded.'));
+					
+					foreach ($json_a['authors'] as $author)
+					{
+						$template->assign_block_vars('authors', array(
+							'AUTHOR'	=> $author['name'],
+						));
+					}
+					
 					$template->assign_vars(array('FILETREE' => $this->php_file_tree($phpbb_root_path . 'ext/' . $destination, $display_name)));
 					$template->assign_vars(array('U_ACTION' => '/adm/index.php?i=acp_extensions&amp;sid=' .$user->session_id . '&amp;mode=main&amp;action=enable_pre&amp;ext_name=' . urlencode($destination)));
 					$template->assign_vars(array('U_ACTION_DELL' => $this->u_action . '&amp;action=delete&amp;ext_name=' . urlencode($destination)));
@@ -177,7 +185,7 @@ class upload_extensions_module
 						// Get extension (prepend 'ext-' to prevent invalid classes from extensions that begin with numbers)
 						$ext = 'ext-' . substr($this_file, strrpos($this_file, '.') + 1); 
 						//$link = str_replace('[link]', $directory . '/' . urlencode($this_file), $return_link);
-						$php_file_tree .= '<li class="pft-file ' . strtolower($ext) . '"><a href="' . $this->u_action . '&amp;file=' . $directory . '/' . urlencode($this_file) . '">' . htmlspecialchars($this_file) . '</a></li>';
+						$php_file_tree .= '<li class="pft-file ' . strtolower($ext) . '"><a href="' . $this->u_action . '&amp;file=' . $directory . '/' . urlencode($this_file) . '" title="' . $this_file . '">' . htmlspecialchars($this_file) . '</a></li>';
 					}
 				}
 			}
