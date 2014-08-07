@@ -19,11 +19,20 @@ class upload_extensions_module
 		$this->page_title = $user->lang['ACP_CRON_STATUS_TITLE'];
 		$this->tpl_name = 'acp_upload_extensions';
 		
+		if (request_var('action', '') == 'delete')
+		{
+			if (request_var('ext_name', '') != '')
+			{
+				$dir = substr(request_var('ext_name', ''), 0, strpos(request_var('ext_name', ''), '/'));
+				$this->rrmdir($phpbb_root_path . 'ext/' . $dir); 
+			}
+		}
+		
 		$file = request_var('file', '');
-		if ($file)
+		if ($file != '')
 		{
 			$string = file_get_contents($file);
-			$template->assign_vars(array('FILENAME' => $file,'CONTENT' => highlight_string($string, true)));
+			$template->assign_vars(array('FILENAME' => substr($file, strrpos($file, '/') + 1),'CONTENT' => highlight_string($string, true)));
 		}
 
 		$ext_name = 'profile-guestbook-ext-master.zip';
@@ -45,12 +54,13 @@ class upload_extensions_module
 				{
 					$display_name = $json_a['extra']['display-name'];
 					$source = substr($composery, 0, -14);
-					$this->rcopy($source, $phpbb_root_path . 'ext/' . $destination );
+					$this->rcopy($source, $phpbb_root_path . 'ext/' . $destination);
 					$this->rrmdir($phpbb_root_path . 'ext/tmp');
 					
 					$template->assign_vars(array('UPLOAD' => 'Package ' . $display_name . ' uploaded.'));
-					$template->assign_vars(array('FILETREE' => $this->php_file_tree($phpbb_root_path . 'ext/' . $destination)));
+					$template->assign_vars(array('FILETREE' => $this->php_file_tree($phpbb_root_path . 'ext/' . $destination, $display_name)));
 					$template->assign_vars(array('U_ACTION' => '/adm/index.php?i=acp_extensions&amp;sid=' .$user->session_id . '&amp;mode=main&amp;action=enable_pre&amp;ext_name=' . urlencode($destination)));
+					$template->assign_vars(array('U_ACTION_DELL' => $this->u_action . '&amp;action=delete&amp;ext_name=' . urlencode($destination)));
 				} else
 				{
 					$template->assign_vars(array('UPLOAD_EXT_ERROR' => 'No vendor or destianation folder'));	
@@ -90,7 +100,7 @@ class upload_extensions_module
 		{
             $files = scandir($dir);
             foreach ($files as $file) if ($file != '.' && $file != '..') $this->rrmdir($dir . '/' . $file);
-            rmdir($dir);
+         	rmdir($dir);
         }
         else if (file_exists($dir)) unlink($dir);
     }
@@ -102,17 +112,16 @@ class upload_extensions_module
             $this->rrmdir ($dst);
         if (is_dir($src))
 		{
-            mkdir($dst);
+			mkdir($dst, 0777, true);
             $files = scandir($src);
             foreach($files as $file)
                 if ($file != '.' && $file != '..') $this->rcopy($src . '/' . $file, $dst . '/' . $file);
         } else if (file_exists($src)) copy($src, $dst);
     }
 
-	function php_file_tree($directory, $extensions = array()) 
+	function php_file_tree($directory, $display_name, $extensions = array()) 
 	{
-		global $display_name;
-		$code = 'Content of package ' . $display_name . '<br />';
+		$code = 'Content of package: ' . $display_name . '<br /><br />';
 		if(substr($directory, -1) == '/' ) $directory = substr($directory, 0, strlen($directory) - 1);
 		$code .= $this->php_file_tree_dir($directory, $extensions);
 		return $code;

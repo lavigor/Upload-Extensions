@@ -19,12 +19,18 @@
 <p></p>
 <p>
 <div style="float:left; witdh:45%">{FILETREE}</div>
-<div style="float:right; width:55%; height:440px; overflow:auto; border: 1px solid #CCCFD3; white-space:nowrap;"><!-- IF CONTENT -->{FILENAME}<!-- ENDIF --><br /><br />{CONTENT}</div>
-</p>
+<!-- IF CONTENT -->
+<div style="float:right; width:55%; height:420px; overflow:auto; border: 1px solid #CCCFD3; white-space:nowrap;">{FILENAME}<br /><br />{CONTENT}</div>
+<!-- ENDIF --></p>
 <br style="clear:both" />
-<form action="{U_ACTION}" method="post">
-<input type="submit" class="button2" name="next" value="Next" />
-</form>
+<div style="position: absolute; bottom:20px;">
+    <form action="{U_ACTION}" method="post" style="float:left;">
+    <input type="submit" class="button2" name="next" value="Enable" /> 
+    </form>
+    <form action="{U_ACTION_DELL}" method="post" style="float:left; margin-left:10px;">
+    <input type="submit" class="button2" name="delete" value="Delete" />
+    </form>
+</div>
 <!-- INCLUDEJS js/jquery.simpledialog.js -->
 <!-- INCLUDEJS js/upload_extensions.js -->
 <!-- INCLUDEJS js/php_file_tree_jquery.js -->
