@@ -13,19 +13,25 @@
 <h1>{L_ACP_UPLOAD_EXT_TITLE}<!-- IF UPLOAD --><i id="circle" class="fa fa-circle-o-notch fa-spin"></i><span id="ProgressStatus" title="{L_CRON_STATUS_REFRESH}">0</span><!-- ENDIF--></h1>
 
 <p>{L_ACP_UPLOAD_EXT_TITLES_EXPLAIN}</p>
+<div style="min-height:450px; width: 97%; border: 1px solid #CCCFD3; background-color: #F9F9F9; padding: 10px;">
 <!-- IF UPLOAD -->
 {UPLOAD}
 <p></p>
 <p>
-{FILETREE}
+<div style="float:left; witdh:45%">{FILETREE}</div>
+<div style="float:right; width:55%; height:440px; overflow:auto; border: 1px solid #CCCFD3; white-space:nowrap;"><!-- IF CONTENT -->{FILENAME}<!-- ENDIF --><br /><br />{CONTENT}</div>
 </p>
+<br style="clear:both" />
+<form action="{U_ACTION}" method="post">
+<input type="submit" class="button2" name="next" value="Next" />
+</form>
 <!-- INCLUDEJS js/jquery.simpledialog.js -->
 <!-- INCLUDEJS js/upload_extensions.js -->
 <!-- INCLUDEJS js/php_file_tree_jquery.js -->
-
 <!-- ELSE -->
 <div class="errorbox">
 	<h3>{UPLOAD_EXT_ERROR}</h3>
 </div>
 <!-- ENDIF -->
+</div>
 <!-- INCLUDE overall_footer.html -->

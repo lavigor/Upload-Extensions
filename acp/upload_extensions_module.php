@@ -18,8 +18,15 @@ class upload_extensions_module
 
 		$this->page_title = $user->lang['ACP_CRON_STATUS_TITLE'];
 		$this->tpl_name = 'acp_upload_extensions';
+		
+		$file = request_var('file', '');
+		if ($file)
+		{
+			$string = file_get_contents($file);
+			$template->assign_vars(array('FILENAME' => $file,'CONTENT' => highlight_string($string, true)));
+		}
 
-		$ext_name = 'phpBB-Auto-Backup-extension.zip';
+		$ext_name = 'profile-guestbook-ext-master.zip';
 		$zip = new \ZipArchive;
 		$res = $zip->open($phpbb_root_path . 'ext/' . $ext_name);
 		if ($res === true) 
@@ -29,18 +36,29 @@ class upload_extensions_module
 		  
 			$composery = $this->listFolderFiles($phpbb_root_path . 'ext/tmp'); 
 		
-			$string = file_get_contents($composery);
-			$json_a=json_decode($string,true);
-			$destination = $json_a['name'];
-			$display_name = $json_a['extra']['display-name'];
-			$source = substr($composery, 0, -14);
-			$this->rcopy($source, $phpbb_root_path . 'ext/' . $destination );
-			
-			$this->rrmdir($phpbb_root_path . 'ext/tmp');
-			
-		  	$template->assign_vars(array('UPLOAD' => 'Package ' . $display_name . ' uploaded.'));
-			
-			$template->assign_vars(array('FILETREE' => $this->php_file_tree($phpbb_root_path . 'ext/' . $destination)));
+			if ($composery)
+			{
+				$string = file_get_contents($composery);
+				$json_a=json_decode($string,true);
+				$destination = $json_a['name'];
+				if (strpos($destination, '/'))
+				{
+					$display_name = $json_a['extra']['display-name'];
+					$source = substr($composery, 0, -14);
+					$this->rcopy($source, $phpbb_root_path . 'ext/' . $destination );
+					$this->rrmdir($phpbb_root_path . 'ext/tmp');
+					
+					$template->assign_vars(array('UPLOAD' => 'Package ' . $display_name . ' uploaded.'));
+					$template->assign_vars(array('FILETREE' => $this->php_file_tree($phpbb_root_path . 'ext/' . $destination)));
+					$template->assign_vars(array('U_ACTION' => '/adm/index.php?i=acp_extensions&amp;sid=' .$user->session_id . '&amp;mode=main&amp;action=enable_pre&amp;ext_name=' . urlencode($destination)));
+				} else
+				{
+					$template->assign_vars(array('UPLOAD_EXT_ERROR' => 'No vendor or destianation folder'));	
+				}
+			} else
+			{
+				$template->assign_vars(array('UPLOAD_EXT_ERROR' => 'composer.json not found'));	
+			}
 		} else 
 		{
 			$template->assign_vars(array('UPLOAD_EXT_ERROR' => $user->lang['ziperror'][$res]));
@@ -52,6 +70,7 @@ class upload_extensions_module
 	{
 		global $composer;
 		$ffs = scandir($dir);
+		$composer = false;
 		foreach($ffs as $ff)
 		{
 			if ($ff != '.' && $ff != '..')
@@ -70,7 +89,7 @@ class upload_extensions_module
         if (is_dir($dir)) 
 		{
             $files = scandir($dir);
-            foreach ($files as $file) if ($file != "." && $file != "..") $this->rrmdir($dir . '/' . $file);
+            foreach ($files as $file) if ($file != '.' && $file != '..') $this->rrmdir($dir . '/' . $file);
             rmdir($dir);
         }
         else if (file_exists($dir)) unlink($dir);
@@ -86,20 +105,20 @@ class upload_extensions_module
             mkdir($dst);
             $files = scandir($src);
             foreach($files as $file)
-                if ($file != "." && $file != "..") $this->rcopy($src . '/' . $file, $dst . '/' . $file);
+                if ($file != '.' && $file != '..') $this->rcopy($src . '/' . $file, $dst . '/' . $file);
         } else if (file_exists($src)) copy($src, $dst);
     }
 
-	function php_file_tree($directory, $return_link ='', $extensions = array()) 
+	function php_file_tree($directory, $extensions = array()) 
 	{
 		global $display_name;
 		$code = 'Content of package ' . $display_name . '<br />';
 		if(substr($directory, -1) == '/' ) $directory = substr($directory, 0, strlen($directory) - 1);
-		$code .= $this->php_file_tree_dir($directory, $return_link, $extensions);
+		$code .= $this->php_file_tree_dir($directory, $extensions);
 		return $code;
 	}
 
-	function php_file_tree_dir($directory, $return_link, $extensions = array(), $first_call = true) 
+	function php_file_tree_dir($directory, $extensions = array(), $first_call = true) 
 	{
 		if (function_exists('scandir')) $file = scandir($directory); else $file = php4_scandir($directory);
 		natcasesort($file);
@@ -126,7 +145,7 @@ class upload_extensions_module
 		}
 	
 		if (count($file) > 2)
-		{ // Use 2 instead of 0 to account for . and .. "directories"
+		{ // Use 2 instead of 0 to account for . and .. directories
 			$php_file_tree = '<ul';
 			if ($first_call) 
 			{
@@ -141,15 +160,15 @@ class upload_extensions_module
 					{
 						// Directory
 						$php_file_tree .= '<li class="pft-directory"><a href="#">' . htmlspecialchars($this_file) . '</a>';
-						$php_file_tree .= $this->php_file_tree_dir($directory . '/' . $this_file, $return_link, $extensions, false);
+						$php_file_tree .= $this->php_file_tree_dir($directory . '/' . $this_file, $extensions, false);
 						$php_file_tree .= '</li>';
 					} else 
 					{
 						// File
 						// Get extension (prepend 'ext-' to prevent invalid classes from extensions that begin with numbers)
 						$ext = 'ext-' . substr($this_file, strrpos($this_file, '.') + 1); 
-						$link = str_replace('[link]', $directory . '/' . urlencode($this_file), $return_link);
-						$php_file_tree .= '<li class="pft-file ' . strtolower($ext) . "><a href='" . $link. '">' . htmlspecialchars($this_file) . '</a></li>';
+						//$link = str_replace('[link]', $directory . '/' . urlencode($this_file), $return_link);
+						$php_file_tree .= '<li class="pft-file ' . strtolower($ext) . '"><a href="' . $this->u_action . '&amp;file=' . $directory . '/' . urlencode($this_file) . '">' . htmlspecialchars($this_file) . '</a></li>';
 					}
 				}
 			}
