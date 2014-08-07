@@ -1,0 +1,31 @@
+<!-- IF S_ALLOW_CDN -->
+<!-- INCLUDECSS //maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css -->
+<!-- ELSE -->
+<!-- INCLUDECSS css/font-awesome.min.css -->
+<!-- ENDIF -->
+<!-- INCLUDECSS css/upload_extensions.css -->
+<!-- INCLUDECSS css/jquery.simpledialog.css -->
+
+<!-- INCLUDE overall_header.html -->
+
+<a name="maincontent"></a>
+
+<h1>{L_ACP_UPLOAD_EXT_TITLE}<!-- IF UPLOAD --><i id="circle" class="fa fa-circle-o-notch fa-spin"></i><span id="ProgressStatus" title="{L_CRON_STATUS_REFRESH}">0</span><!-- ENDIF--></h1>
+
+<p>{L_ACP_UPLOAD_EXT_TITLES_EXPLAIN}</p>
+<!-- IF UPLOAD -->
+{UPLOAD}
+<p></p>
+<p>
+{FILETREE}
+</p>
+<!-- INCLUDEJS js/jquery.simpledialog.js -->
+<!-- INCLUDEJS js/upload_extensions.js -->
+<!-- INCLUDEJS js/php_file_tree_jquery.js -->
+
+<!-- ELSE -->
+<div class="errorbox">
+	<h3>{UPLOAD_EXT_ERROR}</h3>
+</div>
+<!-- ENDIF -->
+<!-- INCLUDE overall_footer.html -->
