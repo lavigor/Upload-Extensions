@@ -22,7 +22,7 @@
     {authors.AUTHOR}<!-- IF not authors.S_LAST_ROW -->, <!-- ENDIF -->
     <!-- END authors -->
     <br /><br />
-<!-- ENDIF -->
+	<!-- ENDIF -->
 
 <div style="float:left; witdh:45%;">{FILETREE}</div>
 <!-- IF CONTENT -->
@@ -37,6 +37,8 @@
 <!-- INCLUDEJS js/jquery.simpledialog.js -->
 <!-- INCLUDEJS js/upload_extensions.js -->
 <!-- INCLUDEJS js/php_file_tree_jquery.js -->
+<!-- ELSEIF DEFAULT -->
+Upload here    <form action="{U_ACTION}" method="post"><input type="submit" class="button2" name="next" value="Upload" />
 <!-- ELSE -->
 <div class="errorbox">
 	<h3>{UPLOAD_EXT_ERROR}</h3>

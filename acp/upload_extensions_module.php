@@ -18,68 +18,79 @@ class upload_extensions_module
 
 		$this->page_title = $user->lang['ACP_UPLOAD_EXT_TITLE'];
 		$this->tpl_name = 'acp_upload_extensions';
+		$action = request_var('action', '');
 		
-		if (request_var('action', '') == 'delete')
+		switch ($action)
 		{
-			if (request_var('ext_name', '') != '')
-			{
-				$dir = substr(request_var('ext_name', ''), 0, strpos(request_var('ext_name', ''), '/'));
-				$this->rrmdir($phpbb_root_path . 'ext/' . $dir); 
-			}
-		}
-		
-		$file = request_var('file', '');
-		if ($file != '')
-		{
-			$string = file_get_contents($file);
-			$template->assign_vars(array('FILENAME' => substr($file, strrpos($file, '/') + 1),'CONTENT' => highlight_string($string, true)));
-		}
-
-		$ext_name = 'boardrules-1.0.0-b2.zip';
-		$zip = new \ZipArchive;
-		$res = $zip->open($phpbb_root_path . 'ext/' . $ext_name);
-		if ($res === true) 
-		{
-			$zip->extractTo($phpbb_root_path . 'ext/tmp');
-			$zip->close();
-		  
-			$composery = $this->listFolderFiles($phpbb_root_path . 'ext/tmp'); 
-		
-			if ($composery)
-			{
-				$string = file_get_contents($composery);
-				$json_a=json_decode($string,true);
-				$destination = $json_a['name'];
-				if (strpos($destination, '/'))
+			case 'show':
+				$file = request_var('file', '');
+				if ($file != '')
 				{
-					$display_name = $json_a['extra']['display-name'];
-					$source = substr($composery, 0, -14);
-					$this->rcopy($source, $phpbb_root_path . 'ext/' . $destination);
-					$this->rrmdir($phpbb_root_path . 'ext/tmp');
-					
-					$template->assign_vars(array('UPLOAD' => 'Package ' . $display_name . ' uploaded.'));
-					
-					foreach ($json_a['authors'] as $author)
-					{
-						$template->assign_block_vars('authors', array(
-							'AUTHOR'	=> $author['name'],
-						));
-					}
-					
-					$template->assign_vars(array('FILETREE' => $this->php_file_tree($phpbb_root_path . 'ext/' . $destination, $display_name)));
-					$template->assign_vars(array('U_ACTION' => '/adm/index.php?i=acp_extensions&amp;sid=' .$user->session_id . '&amp;mode=main&amp;action=enable_pre&amp;ext_name=' . urlencode($destination)));
-					$template->assign_vars(array('U_ACTION_DELL' => $this->u_action . '&amp;action=delete&amp;ext_name=' . urlencode($destination)));
-				} else
-				{
-					$template->assign_vars(array('UPLOAD_EXT_ERROR' => 'No vendor or destianation folder'));	
+					$string = file_get_contents($file);
+					$template->assign_vars(array('FILENAME' => substr($file, strrpos($file, '/') + 1),'CONTENT' => highlight_string($string, true)));
 				}
-			} else
-			{
-				$template->assign_vars(array('UPLOAD_EXT_ERROR' => 'composer.json not found'));	
-			}
-		} else 
-		{
-			$template->assign_vars(array('UPLOAD_EXT_ERROR' => $user->lang['ziperror'][$res]));
+			
+
+			case 'upload':
+				$ext_name = 'boardrules-1.0.0-b2.zip';
+				$zip = new \ZipArchive;
+				$res = $zip->open($phpbb_root_path . 'ext/' . $ext_name);
+				if ($res === true) 
+				{
+					$zip->extractTo($phpbb_root_path . 'ext/tmp');
+					$zip->close();
+				  
+					$composery = $this->listFolderFiles($phpbb_root_path . 'ext/tmp'); 
+				
+					if ($composery)
+					{
+						$string = file_get_contents($composery);
+						$json_a=json_decode($string,true);
+						$destination = $json_a['name'];
+						if (strpos($destination, '/'))
+						{
+							$display_name = $json_a['extra']['display-name'];
+							$source = substr($composery, 0, -14);
+							$this->rcopy($source, $phpbb_root_path . 'ext/' . $destination);
+							$this->rrmdir($phpbb_root_path . 'ext/tmp');
+							
+							$template->assign_vars(array('UPLOAD' => 'Package ' . $display_name . ' uploaded.'));
+							
+							foreach ($json_a['authors'] as $author)
+							{
+								$template->assign_block_vars('authors', array(
+									'AUTHOR'	=> $author['name'],
+								));
+							}
+							
+							$template->assign_vars(array('FILETREE' => $this->php_file_tree($phpbb_root_path . 'ext/' . $destination, $display_name)));
+							$template->assign_vars(array('U_ACTION' => '/adm/index.php?i=acp_extensions&amp;sid=' .$user->session_id . '&amp;mode=main&amp;action=enable_pre&amp;ext_name=' . urlencode($destination)));
+							$template->assign_vars(array('U_ACTION_DELL' => $this->u_action . '&amp;action=delete&amp;ext_name=' . urlencode($destination)));
+						} else
+						{
+							$template->assign_vars(array('UPLOAD_EXT_ERROR' => 'No vendor or destianation folder'));	
+						}
+					} else
+					{
+						$template->assign_vars(array('UPLOAD_EXT_ERROR' => 'composer.json not found'));	
+					}
+				} else 
+				{
+					$template->assign_vars(array('UPLOAD_EXT_ERROR' => $user->lang['ziperror'][$res]));
+				}
+			break;
+			
+			case 'delete':
+				if (request_var('ext_name', '') != '')
+				{
+					$dir = substr(request_var('ext_name', ''), 0, strpos(request_var('ext_name', ''), '/'));
+					$this->rrmdir($phpbb_root_path . 'ext/' . $dir); 
+				}
+
+			default:
+				$template->assign_vars(array('DEFAULT' => true, 'U_ACTION' => $this->u_action . '&amp;action=upload'));
+			
+			break;
 		}
 	}
 	
@@ -185,7 +196,7 @@ class upload_extensions_module
 						// Get extension (prepend 'ext-' to prevent invalid classes from extensions that begin with numbers)
 						$ext = 'ext-' . substr($this_file, strrpos($this_file, '.') + 1); 
 						//$link = str_replace('[link]', $directory . '/' . urlencode($this_file), $return_link);
-						$php_file_tree .= '<li class="pft-file ' . strtolower($ext) . '"><a href="' . $this->u_action . '&amp;file=' . $directory . '/' . urlencode($this_file) . '" title="' . $this_file . '">' . htmlspecialchars($this_file) . '</a></li>';
+						$php_file_tree .= '<li class="pft-file ' . strtolower($ext) . '"><a href="' . $this->u_action . '&amp;action=show&amp;&amp;file=' . $directory . '/' . urlencode($this_file) . '" title="' . $this_file . '">' . htmlspecialchars($this_file) . '</a></li>';
 					}
 				}
 			}
