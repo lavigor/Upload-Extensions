@@ -25,6 +25,10 @@ $lang = array_merge($lang, array(
 	'ACP_UPLOAD_EXT_TITLES_EXPLAIN'	=> 'Upload Extensions enables you to upload an extension zip file, unpack and copy all the files to its desired folder in your extension folder.',
 	'ACP_UPLOAD_EXT_CONT'			=> 'Content of package: ',
 
+	'EXTENSIONS_DISABLED'			=> 'Extension available',
+	'EXTENSION_INVALID_LIST'		=> 'Extensionlist',
+	
+	'ACP_UPLOAD_EXT_DELL'			=> 'Delete extension',
 	'ACP_UPLOAD_PACK_UPLOAD'		=> 'Package %s uploaded.',
 
 	'ACP_UPLOAD_EXT_ERROR_DEST'		=> 'No vendor or destination folder',
