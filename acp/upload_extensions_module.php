@@ -33,50 +33,52 @@ class upload_extensions_module
 		{
 			case 'details':
 
-			$user->add_lang(array('install', 'acp/extensions', 'migrator'));
-			$ext_name = 'forumhulp/upload_extensions';
-			$md_manager = new \phpbb\extension\metadata_manager($ext_name, $config, $phpbb_extension_manager, $template, $user, $phpbb_root_path);
-			try
-			{
-				$this->metadata = $md_manager->get_metadata('all');
-			}
-			catch(\phpbb\extension\exception $e)
-			{
-				trigger_error($e, E_USER_WARNING);
-			}
-
-			$md_manager->output_template_data();
-
-			try
-			{
-				$updates_available = $this->version_check($md_manager, $request->variable('versioncheck_force', false));
-
-				$template->assign_vars(array(
-					'S_UP_TO_DATE'		=> empty($updates_available),
-					'S_VERSIONCHECK'	=> true,
-					'UP_TO_DATE_MSG'	=> $user->lang(empty($updates_available) ? 'UP_TO_DATE' : 'NOT_UP_TO_DATE', $md_manager->get_metadata('display-name')),
-				));
-
-				foreach ($updates_available as $branch => $version_data)
+				$user->add_lang(array('install', 'acp/extensions', 'migrator'));
+				$ext_name = 'forumhulp/upload_extensions';
+				$md_manager = new \phpbb\extension\metadata_manager($ext_name, $config, $phpbb_extension_manager, $template, $user, $phpbb_root_path);
+				try
 				{
-					$template->assign_block_vars('updates_available', $version_data);
+					$this->metadata = $md_manager->get_metadata('all');
 				}
-			}
-			catch (\RuntimeException $e)
-			{
+				catch(\phpbb\extension\exception $e)
+				{
+					trigger_error($e, E_USER_WARNING);
+				}
+	
+				$md_manager->output_template_data();
+	
+				try
+				{
+					$updates_available = $this->version_check($md_manager, $request->variable('versioncheck_force', false));
+	
+					$template->assign_vars(array(
+						'S_UP_TO_DATE'		=> empty($updates_available),
+						'S_VERSIONCHECK'	=> true,
+						'UP_TO_DATE_MSG'	=> $user->lang(empty($updates_available) ? 'UP_TO_DATE' : 'NOT_UP_TO_DATE', $md_manager->get_metadata('display-name')),
+					));
+	
+					foreach ($updates_available as $branch => $version_data)
+					{
+						$template->assign_block_vars('updates_available', $version_data);
+					}
+				}
+				catch (\RuntimeException $e)
+				{
+					$template->assign_vars(array(
+						'S_VERSIONCHECK_STATUS'			=> $e->getCode(),
+						'VERSIONCHECK_FAIL_REASON'		=> ($e->getMessage() !== $user->lang('VERSIONCHECK_FAIL')) ? $e->getMessage() : '',
+					));
+				}
+	
 				$template->assign_vars(array(
-					'S_VERSIONCHECK_STATUS'			=> $e->getCode(),
-					'VERSIONCHECK_FAIL_REASON'		=> ($e->getMessage() !== $user->lang('VERSIONCHECK_FAIL')) ? $e->getMessage() : '',
+					'U_BACK'				=> $this->u_action . '&amp;action=list',
 				));
-			}
-
-			$template->assign_vars(array(
-				'U_BACK'				=> $this->u_action . '&amp;action=list',
-			));
-
-			$this->tpl_name = 'acp_ext_details';
+	
+				$this->tpl_name = 'acp_ext_details';
 			break;
+			
 			case 'upload':
+			sleep(10);
 				$ext_name = 'boardrules-1.0.0-b2.zip';
 				$zip = new \ZipArchive;
 				$res = $zip->open($phpbb_root_path . 'ext/' . $ext_name);
@@ -98,9 +100,7 @@ class upload_extensions_module
 							$source = substr($composery, 0, -14);
 							$this->rcopy($source, $phpbb_root_path . 'ext/' . $destination);
 							$this->rrmdir($phpbb_root_path . 'ext/tmp');
-							
-							$template->assign_vars(array('UPLOAD' => 'Package ' . $display_name . ' uploaded.'));
-							
+														
 							foreach ($json_a['authors'] as $author)
 							{
 								$template->assign_block_vars('authors', array(
@@ -109,18 +109,19 @@ class upload_extensions_module
 							}
 							
 							$template->assign_vars(array(
-								'FILETREE' => $this->php_file_tree($phpbb_root_path . 'ext/' . $destination, $display_name),
-								'S_ACTION' => '/adm/index.php?i=acp_extensions&amp;sid=' .$user->session_id . '&amp;mode=main&amp;action=enable_pre&amp;ext_name=' . urlencode($destination),
+								'UPLOAD'	=> sprintf($user->lang['ACP_UPLOAD_PACK_UPLOAD'], $display_name),
+								'FILETREE'	=> $this->php_file_tree($phpbb_root_path . 'ext/' . $destination, $display_name),
+								'S_ACTION'	=> '/adm/index.php?i=acp_extensions&amp;sid=' .$user->session_id . '&amp;mode=main&amp;action=enable_pre&amp;ext_name=' . urlencode($destination),
 								'S_ACTION_DELL' => $this->u_action . '&amp;action=delete&amp;ext_name=' . urlencode($destination),
-								'U_ACTION' => $this->u_action
+								'U_ACTION'	=> $this->u_action
 							));
 						} else
 						{
-							$template->assign_vars(array('UPLOAD_EXT_ERROR' => 'No vendor or destianation folder'));	
+							$template->assign_vars(array('UPLOAD_EXT_ERROR' => $user->lang['ACP_UPLOAD_EXT_ERROR_DEST']));	
 						}
 					} else
 					{
-						$template->assign_vars(array('UPLOAD_EXT_ERROR' => 'composer.json not found'));	
+						$template->assign_vars(array('UPLOAD_EXT_ERROR' => $user->lang['ACP_UPLOAD_EXT_ERROR_COMP']));	
 					}
 				} else 
 				{
@@ -139,7 +140,7 @@ class upload_extensions_module
 
 			default:
 				$template->assign_vars(array('DEFAULT' => true, 'U_ACTION' => $this->u_action));
-			
+			//print_r(filelist($phpbb_root_path . 'ext/phpbb' ));
 			break;
 		}
 	}
@@ -190,7 +191,8 @@ class upload_extensions_module
 
 	function php_file_tree($directory, $display_name, $extensions = array()) 
 	{
-		$code = 'Content of package: ' . $display_name . '<br /><br />';
+		global $user;
+		$code = $user->lang['ACP_UPLOAD_EXT_CONT'] . $display_name . '<br /><br />';
 		if(substr($directory, -1) == '/' ) $directory = substr($directory, 0, strlen($directory) - 1);
 		$code .= $this->php_file_tree_dir($directory, $extensions);
 		return $code;

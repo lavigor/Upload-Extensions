@@ -10,7 +10,7 @@
 
 <a name="maincontent"></a>
 
-<h1>{L_ACP_UPLOAD_EXT_TITLE} <a href="{U_ACTION}&amp;action=details" class="simpledialog"><i class="fa fa-info-circle"></i></a><!-- IF UPLOAD --><i id="circle" class="fa fa-circle-o-notch fa-spin"></i><span id="ProgressStatus" title="{L_CRON_STATUS_REFRESH}">0</span><!-- ENDIF--></h1>
+<h1>{L_ACP_UPLOAD_EXT_TITLE} <a href="{U_ACTION}&amp;action=details" class="simpledialog"><i class="fa fa-info-circle"></i></a></h1>
 
 <p>{L_ACP_UPLOAD_EXT_TITLES_EXPLAIN}</p>
 <div style="min-height:450px; width: 97%; border: 1px solid #CCCFD3; background-color: #F9F9F9; padding: 10px;">
@@ -37,7 +37,13 @@
 
 <!-- INCLUDEJS js/php_file_tree_jquery.js -->
 <!-- ELSEIF DEFAULT -->
-Upload here    <form action="{U_ACTION}&amp;action=upload" method="post"><input type="submit" class="button2" name="next" value="Upload" />
+Upload here<br />
+<br />
+<br />
+<i id= "upload" style="display:none;" class="fa fa-spinner fa-3x fa-spin"></i>
+<br />
+<br /><br />
+    <form action="{U_ACTION}&amp;action=upload" method="post"><input type="submit" class="button2" name="uploadbtn" id="uploadbtn" value="Upload" />
 <!-- ELSE -->
 <div class="errorbox">
 	<h3>{UPLOAD_EXT_ERROR}</h3>
