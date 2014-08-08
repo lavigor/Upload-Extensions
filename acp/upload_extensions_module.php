@@ -19,18 +19,18 @@ class upload_extensions_module
 		$this->page_title = $user->lang['ACP_UPLOAD_EXT_TITLE'];
 		$this->tpl_name = 'acp_upload_extensions';
 		$action = request_var('action', '');
-		
+
+		$file = request_var('file', '');
+		if ($file != '')
+		{
+			$string = file_get_contents($file);
+			echo substr($file, strrpos($file, '/') + 1) . '<br><br>'.  highlight_string($string, true);
+			exit;
+		}
+
+
 		switch ($action)
 		{
-			case 'show':
-				$file = request_var('file', '');
-				if ($file != '')
-				{
-					$string = file_get_contents($file);
-					$template->assign_vars(array('FILENAME' => substr($file, strrpos($file, '/') + 1),'CONTENT' => highlight_string($string, true)));
-				}
-			
-
 			case 'upload':
 				$ext_name = 'boardrules-1.0.0-b2.zip';
 				$zip = new \ZipArchive;
@@ -195,8 +195,8 @@ class upload_extensions_module
 						// File
 						// Get extension (prepend 'ext-' to prevent invalid classes from extensions that begin with numbers)
 						$ext = 'ext-' . substr($this_file, strrpos($this_file, '.') + 1); 
-						//$link = str_replace('[link]', $directory . '/' . urlencode($this_file), $return_link);
-						$php_file_tree .= '<li class="pft-file ' . strtolower($ext) . '"><a href="' . $this->u_action . '&amp;action=show&amp;&amp;file=' . $directory . '/' . urlencode($this_file) . '" title="' . $this_file . '">' . htmlspecialchars($this_file) . '</a></li>';
+						$link = $this->u_action . '&amp;file=' . $directory . '/' . urlencode($this_file); 
+						$php_file_tree .= '<li class="pft-file ' . strtolower($ext) . '"><a href="javascript:void(0)" onclick="loadXMLDoc(\''. $link . '\')" title="' . $this_file . '">' . htmlspecialchars($this_file) . '</a></li>';
 					}
 				}
 			}
