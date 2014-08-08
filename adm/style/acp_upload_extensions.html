@@ -10,7 +10,7 @@
 
 <a name="maincontent"></a>
 
-<h1>{L_ACP_UPLOAD_EXT_TITLE}<!-- IF UPLOAD --><i id="circle" class="fa fa-circle-o-notch fa-spin"></i><span id="ProgressStatus" title="{L_CRON_STATUS_REFRESH}">0</span><!-- ENDIF--></h1>
+<h1>{L_ACP_UPLOAD_EXT_TITLE} <a href="{U_ACTION}&amp;action=details" class="simpledialog"><i class="fa fa-info-circle"></i></a><!-- IF UPLOAD --><i id="circle" class="fa fa-circle-o-notch fa-spin"></i><span id="ProgressStatus" title="{L_CRON_STATUS_REFRESH}">0</span><!-- ENDIF--></h1>
 
 <p>{L_ACP_UPLOAD_EXT_TITLES_EXPLAIN}</p>
 <div style="min-height:450px; width: 97%; border: 1px solid #CCCFD3; background-color: #F9F9F9; padding: 10px;">
@@ -26,23 +26,24 @@
 
 <div style="float:left; witdh:45%;">{FILETREE}</div>
 
-<div id="filecontent" style="display:none;float:right; width:55%; height:420px; overflow:auto; border: 1px solid #CCCFD3; padding:5px; white-space:nowrap;">{FILENAME}<br /><br />{CONTENT}</div>
+<div id="filecontent" style="display:none;float:right; width:55%; height:420px; overflow:auto; border: 1px solid #CCCFD3; padding:5px; white-space:nowrap; font-size:9px;">{FILENAME}<br /><br />{CONTENT}</div>
 
 <br style="clear:both" />
 
 <div style="position: absolute; bottom:20px;">
-    <form action="{U_ACTION}" method="post" style="float:left;"><input type="submit" class="button2" name="next" value="Enable" /></form>
-    <form action="{U_ACTION_DELL}" method="post" style="float:left; margin-left:10px;"><input type="submit" class="button2" name="delete" value="Delete" /></form>
+    <form action="{S_ACTION}" method="post" style="float:left;"><input type="submit" class="button2" name="next" value="Enable" /></form>
+    <form action="{S_ACTION_DELL}" method="post" style="float:left; margin-left:10px;"><input type="submit" class="button2" name="delete" value="Delete" /></form>
 </div>
-<!-- INCLUDEJS js/jquery.simpledialog.js -->
-<!-- INCLUDEJS js/upload_extensions.js -->
+
 <!-- INCLUDEJS js/php_file_tree_jquery.js -->
 <!-- ELSEIF DEFAULT -->
-Upload here    <form action="{U_ACTION}" method="post"><input type="submit" class="button2" name="next" value="Upload" />
+Upload here    <form action="{U_ACTION}&amp;action=upload" method="post"><input type="submit" class="button2" name="next" value="Upload" />
 <!-- ELSE -->
 <div class="errorbox">
 	<h3>{UPLOAD_EXT_ERROR}</h3>
 </div>
 <!-- ENDIF -->
+<!-- INCLUDEJS js/jquery.simpledialog.js -->
+<!-- INCLUDEJS js/upload_extensions.js -->
 </div>
 <!-- INCLUDE overall_footer.html -->
