@@ -37,12 +37,12 @@
 
 <!-- INCLUDEJS js/php_file_tree_jquery.js -->
 <!-- ELSEIF DEFAULT -->
-<div style="float:left;width:50%">
+<div style="float:left;width:50%;">
 <!-- IF .zip -->
 <table style="float:left; width:95%;">
 <tbody>
 <tr>
-    <td class="row3" colspan="2"><strong>{L_EXTENSIONS_DISABLED}</strong></td>
+    <td class="row3" colspan="2"><strong>{L_ZIP_UPLOADED}</strong></td>
 </tr>
 <!-- BEGIN zip -->
 <tr class="ext_disabled">
@@ -50,10 +50,24 @@
     <td style="text-align: center;"><!-- IF zip.U_DETAILS --><a href="{zip.U_DETAILS}">{L_ACP_UPLOAD_EXT_UNPACK}</a><!-- ENDIF --></td>
 </tr>
 <!-- END zip -->
+<!-- IF .pagination or TOTAL_POSTS -->
+<tr class="ext_disabled"><td colspan="2">
+	<div class="pagination">
+		<!-- IF .pagination -->
+			<!-- INCLUDE pagination.html -->
+		<!-- ELSE -->
+			&bull; {PAGE_NUMBER}
+		<!-- ENDIF -->
+	</div>
+</td></tr>
+<!-- ENDIF -->
 </tbody>
 </table>
+
 <!-- ENDIF -->
 <br style="clear:both;" />
+<br />
+<br />
 Upload new zip<br />
 <br />
 <i id= "upload" style="display:none;" class="fa fa-spinner fa-3x fa-spin"></i>

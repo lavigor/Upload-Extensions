@@ -144,10 +144,21 @@ class upload_extensions_module
 			case 'delete':
 				if (request_var('ext_name', '') != '')
 				{
-					$dir = substr(request_var('ext_name', ''), 0, strpos(request_var('ext_name', ''), '/'));
-					$extensions = sizeof(array_filter(glob($phpbb_root_path . 'ext/' . $dir . '/*'), 'is_dir'));
-					$dir = ($extensions == 1) ? $dir : substr(request_var('ext_name', ''), strpos(request_var('ext_name', '') + 1, '/'));
-					$this->rrmdir($phpbb_root_path . 'ext/' . $dir); 
+					if (confirm_box(true))
+					{
+						$dir = substr(request_var('ext_name', ''), 0, strpos(request_var('ext_name', ''), '/'));
+						$extensions = sizeof(array_filter(glob($phpbb_root_path . 'ext/' . $dir . '/*'), 'is_dir'));
+						$dir = ($extensions == 1) ? $dir : substr(request_var('ext_name', ''), strpos(request_var('ext_name', '') + 1, '/'));
+						$this->rrmdir($phpbb_root_path . 'ext/' . $dir); 
+					} else
+					{
+					confirm_box(false, $user->lang['CONFIRM_OPERATION'], build_hidden_fields(array(
+						'i'			=> $id,
+						'mode'		=> $mode,
+						'action'	=> $action,
+						))
+					);
+					}
 				}
 
 			default:
@@ -162,7 +173,7 @@ class upload_extensions_module
 
 	function listzip()
 	{
-		global $phpbb_root_path;
+		global $phpbb_root_path, $phpbb_container;
 		$zip_aray = array();
 		$ffs = scandir($phpbb_root_path . 'ext/');
 		foreach($ffs as $ff)
@@ -178,10 +189,17 @@ class upload_extensions_module
 			}
 		}
 		
+		$pagination = $phpbb_container->get('pagination');
+		$start		= request_var('start', 0);
+		$zip_count = sizeof($zip_aray);
+		$per_page = 10;
+		$base_url = $this->u_action;
+		$pagination->generate_template_pagination($base_url, 'pagination', 'start', $zip_count, $per_page, $start);
+		
 		uasort($zip_aray, array($this, 'sort_extension_meta_data_table'));
-		foreach ($zip_aray as $name => $block_vars)
+		for($i = $start; $i < $zip_count && $i < $start + $per_page; $i++)
 		{
-			$this->template->assign_block_vars('zip', $block_vars);
+			$this->template->assign_block_vars('zip', $zip_aray[$i]);
 		}
 	}
 	

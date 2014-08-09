@@ -45,6 +45,7 @@ $lang = array_merge($lang, array(
 		'11'		=> 'Can\'t open file.',
 		'5'			=> 'Read error.',
 		'4'			=> 'Seek error.'
-	)
+	),
 
+	'ZIP_UPLOADED'	=> 'Extension zips already uploaded.'
 ));
