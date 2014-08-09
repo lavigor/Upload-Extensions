@@ -47,5 +47,6 @@ $lang = array_merge($lang, array(
 		'4'			=> 'Seek error.'
 	),
 
-	'ZIP_UPLOADED'	=> 'Extension zips already uploaded.'
+	'ZIP_UPLOADED'			=> 'Extension zips already uploaded.',
+	'EXT_DELETE_SUCCESS'	=> 'Extension deleted succesfully'
 ));

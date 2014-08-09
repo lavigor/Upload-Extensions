@@ -150,6 +150,10 @@ class upload_extensions_module
 						$extensions = sizeof(array_filter(glob($phpbb_root_path . 'ext/' . $dir . '/*'), 'is_dir'));
 						$dir = ($extensions == 1) ? $dir : substr(request_var('ext_name', ''), strpos(request_var('ext_name', '') + 1, '/'));
 						$this->rrmdir($phpbb_root_path . 'ext/' . $dir); 
+						if ($request->is_ajax())
+						{
+							trigger_error('EXT_DELETE_SUCCESS');
+						}
 					} else
 					{
 					confirm_box(false, $user->lang['CONFIRM_OPERATION'], build_hidden_fields(array(
