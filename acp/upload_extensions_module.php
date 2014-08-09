@@ -91,7 +91,7 @@ class upload_extensions_module
 			case 'upload':
 				sleep(5); // For upload test
 				
-				$ext_name = 'boardrules-1.0.0-b2.zip';
+				$ext_name = request_var('ext_name', 'boardrules-1.0.0-b2.zip');
 				$zip = new \ZipArchive;
 				$res = $zip->open($phpbb_root_path . 'ext/' . $ext_name);
 				if ($res === true) 
@@ -151,10 +151,37 @@ class upload_extensions_module
 				}
 
 			default:
+			
+				$this->listzip();
 				$this->list_available_exts($phpbb_extension_manager);
 			
 				$this->template->assign_vars(array('DEFAULT' => true, 'U_ACTION' => $this->u_action));
 			break;
+		}
+	}
+
+	function listzip()
+	{
+		global $phpbb_root_path;
+		$zip_aray = array();
+		$ffs = scandir($phpbb_root_path . 'ext/');
+		foreach($ffs as $ff)
+		{
+			if ($ff != '.' && $ff != '..')
+			{
+				if (strpos($ff,'.zip')) 
+				{
+					$zip_aray[] = array(
+					'META_DISPLAY_NAME' => $ff,
+					'U_DETAILS'	=> $this->u_action . '&amp;action=upload&amp;ext_name=' . urlencode($ff)
+				);}
+			}
+		}
+		
+		uasort($zip_aray, array($this, 'sort_extension_meta_data_table'));
+		foreach ($zip_aray as $name => $block_vars)
+		{
+			$this->template->assign_block_vars('zip', $block_vars);
 		}
 	}
 	
@@ -275,7 +302,7 @@ class upload_extensions_module
 	* @param  $phpbb_extension_manager     An instance of the extension manager
 	* @return null
 	*/
-	public function list_available_exts(\phpbb\extension\manager $phpbb_extension_manager)
+	protected function list_available_exts(\phpbb\extension\manager $phpbb_extension_manager)
 	{
 		$uninstalled = array_diff_key($phpbb_extension_manager->all_available(), $phpbb_extension_manager->all_configured());
 
@@ -291,34 +318,17 @@ class upload_extensions_module
 				$available_extension_meta_data[$name] = array(
 					'META_DISPLAY_NAME' => $md_manager->get_metadata('display-name'),
 					'META_VERSION' => $meta['version'],
+					'U_DETAILS'	=> $this->u_action . '&amp;action=delete&amp;ext_name=' . urlencode($name)
 				);
-
-				$force_update = $this->request->variable('versioncheck_force', false);
-				$updates = $this->version_check($md_manager, $force_update, !$force_update);
-
-				$available_extension_meta_data[$name]['S_UP_TO_DATE'] = empty($updates);
-				$available_extension_meta_data[$name]['S_VERSIONCHECK'] = true;
-				$available_extension_meta_data[$name]['U_VERSIONCHECK_FORCE'] = $this->u_action . '&amp;action=details&amp;versioncheck_force=1&amp;ext_name=' . urlencode($md_manager->get_metadata('name'));
 			}
 			catch(\phpbb\extension\exception $e)
 			{
-				$this->template->assign_block_vars('disabled', array(
-					'META_DISPLAY_NAME'		=> $this->user->lang('EXTENSION_INVALID_LIST', $name, $e),
-					'S_VERSIONCHECK'		=> false,
-				));
-			}
-			catch (\RuntimeException $e)
-			{
-				$available_extension_meta_data[$name]['S_VERSIONCHECK'] = false;
 			}
 		}
 
 		uasort($available_extension_meta_data, array($this, 'sort_extension_meta_data_table'));
-
 		foreach ($available_extension_meta_data as $name => $block_vars)
 		{
-			$block_vars['U_DETAILS'] = $this->u_action . '&amp;action=delete&amp;ext_name=' . urlencode($name);
-
 			$this->template->assign_block_vars('disabled', $block_vars);
 		}
 	}

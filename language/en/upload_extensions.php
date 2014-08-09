@@ -29,6 +29,7 @@ $lang = array_merge($lang, array(
 	'EXTENSION_INVALID_LIST'		=> 'Extensionlist',
 	
 	'ACP_UPLOAD_EXT_DELL'			=> 'Delete extension',
+	'ACP_UPLOAD_EXT_UNPACK'			=> 'Unpack extension',
 	'ACP_UPLOAD_PACK_UPLOAD'		=> 'Package %s uploaded.',
 
 	'ACP_UPLOAD_EXT_ERROR_DEST'		=> 'No vendor or destination folder',

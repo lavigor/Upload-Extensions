@@ -38,39 +38,46 @@
 <!-- INCLUDEJS js/php_file_tree_jquery.js -->
 <!-- ELSEIF DEFAULT -->
 <div style="float:left;width:50%">
-Upload here<br />
-<br />
+<!-- IF .zip -->
+<table style="float:left; width:95%;">
+<tbody>
+<tr>
+    <td class="row3" colspan="2"><strong>{L_EXTENSIONS_DISABLED}</strong></td>
+</tr>
+<!-- BEGIN zip -->
+<tr class="ext_disabled">
+    <td><div style="width:230px; overflow:hidden; text-overflow:ellipsis;white-space:nowrap;">{zip.META_DISPLAY_NAME}</div></td>
+    <td style="text-align: center;"><!-- IF zip.U_DETAILS --><a href="{zip.U_DETAILS}">{L_ACP_UPLOAD_EXT_UNPACK}</a><!-- ENDIF --></td>
+</tr>
+<!-- END zip -->
+</tbody>
+</table>
+<!-- ENDIF -->
+<br style="clear:both;" />
+Upload new zip<br />
 <br />
 <i id= "upload" style="display:none;" class="fa fa-spinner fa-3x fa-spin"></i>
 <br />
 <br /><br />
-    <form action="{U_ACTION}&amp;action=upload" method="post"><input type="submit" class="button2" name="uploadbtn" id="uploadbtn" value="Upload" />
-</form>
+<form action="{U_ACTION}&amp;action=upload" method="post"><input type="submit" class="button2" name="uploadbtn" id="uploadbtn" value="Upload" /></form>
 </div>
         
-        <table style="float:right; width:50%;">
-        <!-- IF .disabled -->
-		<tr>
-			<td class="row3" colspan="4"><strong>{L_EXTENSIONS_DISABLED}</strong></td>
-		</tr>
-		<!-- BEGIN disabled -->
-		<tr class="ext_disabled">
-			<td><strong>{disabled.META_DISPLAY_NAME}</strong></td>
-			<td style="text-align: center;">
-				<!-- IF disabled.S_VERSIONCHECK -->
-				<strong <!-- IF disabled.S_UP_TO_DATE -->style="color: #228822;"<!-- ELSE -->style="color: #BC2A4D;"<!-- ENDIF -->>{disabled.META_VERSION}</strong>
-				<!-- ELSE -->
-				{disabled.META_VERSION}
-				<!-- ENDIF -->
-			</td>
-			<td style="text-align: center;">
-				<!-- IF disabled.U_DETAILS --><a href="{disabled.U_DETAILS}">{L_ACP_UPLOAD_EXT_DELL}</a><!-- ENDIF -->
-			</td>
-		</tr>
-		<!-- END disabled -->
-		<!-- ENDIF -->
-	</tbody>
-	</table>
+<!-- IF .disabled -->
+<table style="float:right; width:50%;">
+<tbody>
+<tr>
+    <td class="row3" colspan="3"><strong>{L_EXTENSIONS_DISABLED}</strong></td>
+</tr>
+<!-- BEGIN disabled -->
+<tr class="ext_disabled">
+    <td><strong>{disabled.META_DISPLAY_NAME}</strong></td>
+    <td style="text-align: center;">{disabled.META_VERSION}</td>
+    <td style="text-align: center;"><!-- IF disabled.U_DETAILS --><a href="{disabled.U_DETAILS}">{L_ACP_UPLOAD_EXT_DELL}</a><!-- ENDIF --></td>
+</tr>
+<!-- END disabled -->
+</tbody>
+</table>
+<!-- ENDIF -->
 
     
     
