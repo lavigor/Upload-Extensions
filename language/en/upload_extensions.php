@@ -21,6 +21,13 @@ $lang = array_merge($lang, array(
 	'ACP_UPLOAD_EXT_TITLE'			=> 'Upload Extensions',
 	'ACP_UPLOAD_EXT_CONFIG_TITLE'	=> 'Upload Extensions',
 
+	'UPLOAD'							=> 'Upload',
+	'MOD_UPLOAD'				=> 'Upload Extension',
+	'MOD_UPLOAD_EXPLAIN'		=> 'Here you can upload a zipped Extension package containing the necessary files to perform installation. Upload Extensions will then attempt to unzip the file and have it ready for installation.',
+	'MOD_UPLOAD_INIT_FAIL'		=> 'There was an error initialising the Extension upload process.',
+	'MOD_UPLOAD_SUCCESS'		=> 'Extension uploaded and prepared for installation.',
+	'MOD_UPLOAD_UNRECOGNIZED'	=> 'The directory structure of the uploaded Extension archive is unrecognized. Check if the zip archive you uploaded is corrupt or missing any files/directories, or contact the Extension Author.',
+	'NO_UPLOAD_FILE'			=> 'No_upload file',
 
 	'ACP_UPLOAD_EXT_TITLES_EXPLAIN'	=> 'Upload Extensions enables you to upload an extension zip file, unpack and copy all the files to its desired folder in your extension folder.',
 	'ACP_UPLOAD_EXT_CONT'			=> 'Content of package: ',

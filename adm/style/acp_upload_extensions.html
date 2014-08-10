@@ -32,7 +32,9 @@
 
 <div style="position: absolute; bottom:20px;">
     <form action="{S_ACTION}" method="post" style="float:left;"><input type="submit" class="button2" name="next" value="Enable" /></form>
-    <form action="{S_ACTION_DELL}" method="post" style="float:left; margin-left:10px;"><input type="submit" class="button2" name="delete" value="Delete" /></form>
+<!--    <form action="{S_ACTION_DELL}" method="post" style="float:left; margin-left:10px;"><input type="submit" class="button2" name="delete" value="Delete"  data-ajax="refresh" ></form>
+-->
+    <a href="{S_ACTION_DELL}" style="width: auto !important; padding: 1px 3px 0 3px; font-family: "Lucida Grande", Verdana, Helvetica, Arial, sans-serif; color: #000; font-size: 0.85em; background: #EFEFEF url("/adm/images/bg_button.gif") repeat-x top;  cursor: pointer;" data-ajax="true">Delete</a>
 </div>
 
 <!-- INCLUDEJS js/php_file_tree_jquery.js -->
@@ -66,14 +68,22 @@
 
 <!-- ENDIF -->
 <br style="clear:both;" />
-<br />
-<br />
-Upload new zip<br />
-<br />
-<i id= "upload" style="display:none;" class="fa fa-spinner fa-3x fa-spin"></i>
-<br />
-<br /><br />
-<form action="{U_ACTION}&amp;action=upload" method="post"><input type="submit" class="button2" name="uploadbtn" id="uploadbtn" value="Upload" /></form>
+	<form style="float:left; width:95%;" action="{U_UPLOAD}" method="post" id="mod_upload" {S_FORM_ENCTYPE}>
+		<fieldset>
+			<legend>{L_MOD_UPLOAD}</legend>
+			<dl>
+				<p>{L_MOD_UPLOAD_EXPLAIN}</p>
+				<input type="file" name="modupload" id="modupload" value="" style="width:80%" accept=".zip" />
+				{S_FORM_TOKEN}
+				{S_HIDDEN_FIELDS}
+				<br />
+				<br />
+                <input type="hidden" name="action" value="upload" />
+				<input class="button1" type="submit" name="submit" value="{L_UPLOAD}" id="submit" />
+				<i id="upload" style="display:none;" class="fa fa-spinner fa-3x fa-spin"></i>
+			</dl>
+		</fieldset>
+	</form>
 </div>
         
 <!-- IF .disabled -->

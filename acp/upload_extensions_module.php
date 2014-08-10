@@ -17,6 +17,9 @@ class upload_extensions_module
 	private $cache;
 	private $template;
 	private $request;
+	var $store_dir = '';
+	var $mods_dir = '';
+	var $error = '';
 
 	function main($id, $mode)
 	{
@@ -30,6 +33,8 @@ class upload_extensions_module
 
 		$this->page_title = $user->lang['ACP_UPLOAD_EXT_TITLE'];
 		$this->tpl_name = 'acp_upload_extensions';
+		$this->store_dir = $phpbb_root_path . 'ext';
+		$this->mods_dir = $phpbb_root_path . 'ext';
 
 		$action = request_var('action', '');
 
@@ -89,55 +94,9 @@ class upload_extensions_module
 			break;
 			
 			case 'upload':
-				sleep(5); // For upload test
-				
-				$ext_name = request_var('ext_name', 'boardrules-1.0.0-b2.zip');
-				$zip = new \ZipArchive;
-				$res = $zip->open($phpbb_root_path . 'ext/' . $ext_name);
-				if ($res === true) 
+				if (!$this->upload_mod($action))
 				{
-					$zip->extractTo($phpbb_root_path . 'ext/tmp');
-					$zip->close();
-				  
-					$composery = $this->listFolderFiles($phpbb_root_path . 'ext/tmp'); 
-				
-					if ($composery)
-					{
-						$string = file_get_contents($composery);
-						$json_a=json_decode($string,true);
-						$destination = $json_a['name'];
-						if (strpos($destination, '/'))
-						{
-							$display_name = $json_a['extra']['display-name'];
-							$source = substr($composery, 0, -14);
-							$this->rcopy($source, $phpbb_root_path . 'ext/' . $destination);
-							$this->rrmdir($phpbb_root_path . 'ext/tmp');
-														
-							foreach ($json_a['authors'] as $author)
-							{
-								$this->template->assign_block_vars('authors', array(
-									'AUTHOR'	=> $author['name'],
-								));
-							}
-							
-							$this->template->assign_vars(array(
-								'UPLOAD'	=> sprintf($user->lang['ACP_UPLOAD_PACK_UPLOAD'], $display_name),
-								'FILETREE'	=> $this->php_file_tree($phpbb_root_path . 'ext/' . $destination, $display_name),
-								'S_ACTION'	=> '/adm/index.php?i=acp_extensions&amp;sid=' .$user->session_id . '&amp;mode=main&amp;action=enable_pre&amp;ext_name=' . urlencode($destination),
-								'S_ACTION_DELL' => $this->u_action . '&amp;action=delete&amp;ext_name=' . urlencode($destination),
-								'U_ACTION'	=> $this->u_action
-							));
-						} else
-						{
-							$this->template->assign_vars(array('UPLOAD_EXT_ERROR' => $user->lang['ACP_UPLOAD_EXT_ERROR_DEST']));	
-						}
-					} else
-					{
-						$this->template->assign_vars(array('UPLOAD_EXT_ERROR' => $user->lang['ACP_UPLOAD_EXT_ERROR_COMP']));	
-					}
-				} else 
-				{
-					$this->template->assign_vars(array('UPLOAD_EXT_ERROR' => $user->lang['ziperror'][$res]));
+					// Do nothing.
 				}
 			break;
 			
@@ -156,21 +115,29 @@ class upload_extensions_module
 						}
 					} else
 					{
-					confirm_box(false, $user->lang['CONFIRM_OPERATION'], build_hidden_fields(array(
-						'i'			=> $id,
-						'mode'		=> $mode,
-						'action'	=> $action,
-						))
-					);
+						confirm_box(false, $user->lang['CONFIRM_OPERATION'], build_hidden_fields(array(
+							'i'			=> $id,
+							'mode'		=> $mode,
+							'action'	=> $action,
+							))
+						);
 					}
 				}
-
+			
 			default:
 			
 				$this->listzip();
 				$this->list_available_exts($phpbb_extension_manager);
 			
-				$this->template->assign_vars(array('DEFAULT' => true, 'U_ACTION' => $this->u_action));
+				if (!is_writable($this->mods_dir))
+				{
+					$template->assign_var('S_MODS_WRITABLE_WARN', true);
+				}
+				$template->assign_vars(array(
+					'DEFAULT'			=> true, 
+					'U_ACTION'			=> $this->u_action, 
+					'U_UPLOAD'			=> $this->u_action,/* . '&amp;action=upload', */
+					'S_FORM_ENCTYPE'	=> ' enctype="multipart/form-data"',));
 			break;
 		}
 	}
@@ -390,5 +357,153 @@ class upload_extensions_module
 		$version_helper->force_stability($config['extension_force_unstable'] ? 'unstable' : null);
 
 		return $updates = $version_helper->get_suggested_updates($force_update, $force_cache);
+	}
+
+	/**
+	 *
+	 * @package automod
+	 * @copyright (c) 2008 phpBB Group
+	 * @license http://opensource.org/licenses/gpl-2.0.php GNU Public License
+	 *
+	 */
+	function upload_mod($action)
+	{
+		global $phpbb_root_path, $phpEx, $template, $user, $request;
+
+		$can_upload = (@ini_get('file_uploads') == '0' || strtolower(@ini_get('file_uploads')) == 'off' || !@extension_loaded('zlib')) ? false : true;
+
+		$user->add_lang('posting');  // For error messages
+		include($phpbb_root_path . 'includes/functions_upload.' . $phpEx);
+		$upload = new \fileupload();
+		$upload->set_allowed_extensions(array('zip'));	// Only allow ZIP files
+
+		if (!is_writable($this->mods_dir))
+		{
+			trigger_error($user->lang['MODS_NOT_WRITABLE'] . adm_back_link($this->u_action), E_USER_WARNING);
+		}
+
+		$upload_dir = $this->mods_dir;
+
+		// Make sure the store/mods/ directory exists and if it doesn't, create it
+		if (!is_dir($this->mods_dir))
+		{
+			$this->recursive_mkdir($this->mods_dir);
+		}
+
+		// Proceed with the upload
+		$file = $upload->form_upload('modupload');
+
+		if (empty($file->filename))
+		{
+			trigger_error($user->lang['NO_UPLOAD_FILE'] . adm_back_link($this->u_action), E_USER_WARNING);
+		}
+		else if ($file->init_error || sizeof($file->error))
+		{
+			$file->remove();
+			trigger_error((sizeof($file->error) ? implode('<br />', $file->error) : $user->lang['MOD_UPLOAD_INIT_FAIL']) . adm_back_link($this->u_action), E_USER_WARNING);
+		}
+
+		$file->clean_filename('real');
+		$file->move_file(str_replace($phpbb_root_path, '', $upload_dir), true, true);
+
+		if (sizeof($file->error))
+		{
+			$file->remove();
+			trigger_error(implode('<br />', $file->error) . adm_back_link($this->u_action), E_USER_WARNING);
+		}
+
+		include($phpbb_root_path . 'includes/functions_compress.' . $phpEx);
+		$mod_dir = $upload_dir . '/' . str_replace('.zip', '', $file->get('realname'));
+		
+		$zip = new \ZipArchive;
+		$res = $zip->open($file->destination_file);
+		if ($res === true) 
+		{
+			$zip->extractTo($phpbb_root_path . 'ext/tmp');
+			$zip->close();
+			
+			$composery = $this->listFolderFiles($phpbb_root_path . 'ext/tmp'); 
+			
+			if ($composery)
+			{
+				$string = file_get_contents($composery);
+				$json_a = json_decode($string, true);
+				$destination = $json_a['name'];
+				if (strpos($destination, '/'))
+				{
+					$display_name = $json_a['extra']['display-name'];
+					$source = substr($composery, 0, -14);
+					$this->rcopy($source, $phpbb_root_path . 'ext/' . $destination);
+					$this->rrmdir($phpbb_root_path . 'ext/tmp');
+					
+					$template->assign_vars(array('UPLOAD' => 'Package ' . $display_name . ' uploaded.'));
+					
+					foreach ($json_a['authors'] as $author)
+					{
+						$template->assign_block_vars('authors', array(
+							'AUTHOR'	=> $author['name'],
+						));
+					}
+					
+					$template->assign_vars(array(
+						'FILETREE'	=> $this->php_file_tree($phpbb_root_path . 'ext/' . $destination, $display_name),
+						'S_UPLOADED'	=> $user->lang('EXTENSION_UPLOADED', $destination),
+						'S_ACTION'		=> $phpbb_root_path . '/adm/index.php?i=acp_extensions&amp;sid=' .$user->session_id . '&amp;mode=main&amp;action=enable_pre&amp;ext_name=' . urlencode($destination),
+						'S_ACTION_DELL'	=> $this->u_action . '&amp;action=delete&amp;ext_name=' . urlencode($destination),
+						'U_ACTION'		=> $this->u_action
+					));
+				} else
+				{
+					trigger_error($user->lang['ACP_UPLOAD_EXT_ERROR_DEST'] . adm_back_link($this->u_action), E_USER_WARNING);	
+				}
+			} else
+			{
+				trigger_error($user->lang['ACP_UPLOAD_EXT_ERROR_COMP'] . adm_back_link($this->u_action), E_USER_WARNING);
+			}
+		} else 
+		{
+			trigger_error($user->lang['ziperror'][$res] . adm_back_link($this->u_action), E_USER_WARNING);
+		}
+
+		// Remove the uploaded archive file
+		$file->remove();
+
+		return true;
+	}
+	
+	/**
+	 * @author Michal Nazarewicz (from the php manual)
+	 * Creates all non-existant directories in a path
+	 * @param $path - path to create
+	 * @param $mode - CHMOD the new dir to these permissions
+	 * @return bool
+	 */
+	function recursive_mkdir($path, $mode = false)
+	{
+		if (!$mode)
+		{
+			global $config;
+			$mode = octdec($config['am_dir_perms']);
+		}
+
+		$dirs = explode('/', $path);
+		$count = sizeof($dirs);
+		$path = '.';
+		for ($i = 0; $i < $count; $i++)
+		{
+			$path .= '/' . $dirs[$i];
+
+			if (!is_dir($path))
+			{
+				@mkdir($path, $mode);
+				@chmod($path, $mode);
+
+				if (!is_dir($path))
+				{
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 }
