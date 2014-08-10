@@ -6,12 +6,26 @@
 	    width: '650px',
 		height: '600px'
 	});
-	
-	$( "#uploadbtn" ).click(function() {
+
+	$("#submit").click(function () {
+		$("#submit").css("display", "none");
 		$("#upload").css("display", "inline-block");
 	});
-	
+
+	$(".delete_link").click(function () {
+		$(".successbox").css("display", "none");
+	})
 })(jQuery, window, document);
+
+function browseFile() 
+{
+	document.getElementById('extupload').click();
+}
+
+function setFileName() 
+{
+	document.getElementById('fake_upload').value = document.getElementById("extupload").files[0].name;
+}
 
 function loadXMLDoc(url)
 {

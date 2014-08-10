@@ -12,36 +12,37 @@
 
 <h1>{L_ACP_UPLOAD_EXT_TITLE} <a href="{U_ACTION}&amp;action=details" class="simpledialog"><i class="fa fa-info-circle"></i></a></h1>
 
-<p>{L_ACP_UPLOAD_EXT_TITLES_EXPLAIN}</p>
-<div style="min-height:450px; width: 97%; border: 1px solid #CCCFD3; background-color: #F9F9F9; padding: 10px;">
-<!-- IF UPLOAD -->
-    {UPLOAD}
-    <!-- IF .authors -->
-    <br />Authors:
-    <!-- BEGIN authors -->
-    {authors.AUTHOR}<!-- IF not authors.S_LAST_ROW -->, <!-- ENDIF -->
-    <!-- END authors -->
-    <br /><br />
-	<!-- ENDIF -->
+<p>{L_ACP_UPLOAD_EXT_TITLE_EXPLAIN}</p>
 
-<div style="float:left; witdh:45%;">{FILETREE}</div>
-
-<div id="filecontent" style="display:none;float:right; width:55%; height:420px; overflow:auto; border: 1px solid #CCCFD3; padding:5px; white-space:nowrap; font-size:9px;">{FILENAME}<br /><br />{CONTENT}</div>
-
-<br style="clear:both" />
-
-<div style="position: absolute; bottom:20px;">
-    <form action="{S_ACTION}" method="post" style="float:left;"><input type="submit" class="button2" name="next" value="Enable" /></form>
-<!--    <form action="{S_ACTION_DELL}" method="post" style="float:left; margin-left:10px;"><input type="submit" class="button2" name="delete" value="Delete"  data-ajax="refresh" ></form>
--->
-    <a href="{S_ACTION_DELL}" style="width: auto !important; padding: 1px 3px 0 3px; font-family: "Lucida Grande", Verdana, Helvetica, Arial, sans-serif; color: #000; font-size: 0.85em; background: #EFEFEF url("/adm/images/bg_button.gif") repeat-x top;  cursor: pointer;" data-ajax="true">Delete</a>
+<!-- IF S_UPLOADED -->
+<div class="successbox">
+	{S_UPLOADED}
+	<a href="{S_ACTION}">{L_EXTENSION_UPLOADED_ENABLE}</a>
 </div>
+<!-- ENDIF -->
 
-<!-- INCLUDEJS js/php_file_tree_jquery.js -->
-<!-- ELSEIF DEFAULT -->
-<div style="float:left;width:50%;">
+<!-- IF .disabled -->
+<table id="ext_table">
+	<tr>
+		<td class="row3" colspan="3"><strong>{L_EXTENSIONS_AVAILABLE}</strong></td>
+	</tr>
+	<!-- BEGIN disabled -->
+	<tr class="ext_disabled">
+		<td><strong>{disabled.META_DISPLAY_NAME}</strong></td>
+		<td style="text-align: center;">{disabled.META_VERSION}</td>
+		<td style="text-align: center;">
+			<!-- IF disabled.U_DETAILS -->
+			<a href="{disabled.U_DETAILS}" data-ajax="row_delete" class="delete_link">{L_EXTENSION_DELETE}</a>
+			<!-- ENDIF -->
+		</td>
+	</tr>
+	<!-- END disabled -->
+	</tbody>
+</table>
+<!-- ENDIF -->
+
 <!-- IF .zip -->
-<table style="float:left; width:95%;">
+<table style="float:left; width:48%;">
 <tbody>
 <tr>
     <td class="row3" colspan="2"><strong>{L_ZIP_UPLOADED}</strong></td>
@@ -65,53 +66,48 @@
 <!-- ENDIF -->
 </tbody>
 </table>
-
-<!-- ENDIF -->
-<br style="clear:both;" />
-	<form style="float:left; width:95%;" action="{U_UPLOAD}" method="post" id="mod_upload" {S_FORM_ENCTYPE}>
-		<fieldset>
-			<legend>{L_MOD_UPLOAD}</legend>
-			<dl>
-				<p>{L_MOD_UPLOAD_EXPLAIN}</p>
-				<input type="file" name="modupload" id="modupload" value="" style="width:80%" accept=".zip" />
-				{S_FORM_TOKEN}
-				{S_HIDDEN_FIELDS}
-				<br />
-				<br />
-                <input type="hidden" name="action" value="upload" />
-				<input class="button1" type="submit" name="submit" value="{L_UPLOAD}" id="submit" />
-				<i id="upload" style="display:none;" class="fa fa-spinner fa-3x fa-spin"></i>
-			</dl>
-		</fieldset>
-	</form>
-</div>
-        
-<!-- IF .disabled -->
-<table style="float:right; width:50%;">
-<tbody>
-<tr>
-    <td class="row3" colspan="3"><strong>{L_EXTENSIONS_DISABLED}</strong></td>
-</tr>
-<!-- BEGIN disabled -->
-<tr class="ext_disabled">
-    <td><strong>{disabled.META_DISPLAY_NAME}</strong></td>
-    <td style="text-align: center;">{disabled.META_VERSION}</td>
-    <td style="text-align: center;"><!-- IF disabled.U_DETAILS --><a href="{disabled.U_DETAILS}" data-ajax="row_delete">{L_ACP_UPLOAD_EXT_DELL}</a><!-- ENDIF --></td>
-</tr>
-<!-- END disabled -->
-</tbody>
-</table>
 <!-- ENDIF -->
 
-    
-    
-    
-<!-- ELSE -->
-<div class="errorbox">
-	<h3>{UPLOAD_EXT_ERROR}</h3>
-</div>
-<!-- ENDIF -->
+<form action="{U_UPLOAD}" method="post" id="ext_upload" autocomplete="off" {S_FORM_ENCTYPE}>
+	<fieldset>
+		<legend>{L_EXTENSION_UPLOAD}</legend>
+		<dl>
+			<p>{L_EXTENSION_UPLOAD_EXPLAIN}</p>
+
+            <input type="text" id="fake_upload"  name="fake_upload" title="Choose your extension or type a url"/>
+            <input type="button" id="btn" value="Browse" onclick="browseFile();" />
+            <input type="file" id="extupload" name="extupload" accept=".zip" onchange="setFileName();" />
+            
+   			{S_FORM_TOKEN}
+			{S_HIDDEN_FIELDS}
+			<br />
+			<br />
+			<input class="button1" type="submit" name="submit" value="{L_UPLOAD}" id="submit" />
+			<i id="upload" class="fa fa-spinner fa-3x fa-spin"></i>
+		</dl>
+	</fieldset>
+</form>
+
+
+<!--
+<form action="{U_UPLOAD_REMOTE}" method="post" id="ext_upload_remote">
+	<fieldset>
+		<legend>{L_EXTENSION_UPLOAD_REMOTE}</legend>
+		<dl>
+			<p>{L_EXTENSION_UPLOAD_REMOTE_EXPLAIN}</p>
+			<input type="text" name="extupload_remote" id="extupload_remote" value="" />
+			{S_FORM_TOKEN}
+			{S_HIDDEN_FIELDS}
+			<br />
+			<br />
+			<input class="button1" type="submit" name="submit_remote" value="{L_UPLOAD}" id="submit_remote" />
+			<i id="upload_remote" class="fa fa-spinner fa-3x fa-spin"></i>
+		</dl>
+	</fieldset>
+</form>
+-->
+<br style="clear:both" />
+
 <!-- INCLUDEJS js/jquery.simpledialog.js -->
 <!-- INCLUDEJS js/upload_extensions.js -->
-</div>
 <!-- INCLUDE overall_footer.html -->
