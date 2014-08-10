@@ -1,16 +1,25 @@
 ; (function ($, window, document) {
 	// do stuff here and use $, window and document safely
-	// https://www.phpbb.com/community/viewtopic.php?p=13589106#p13589106
+	// https://www.phpbb.com/community/viewtopic.php?p=13589106#p13589106	
 	$("a.simpledialog").simpleDialog({
 	    opacity: 0.1,
 	    width: '650px',
 		height: '600px'
 	});
-	
-	$( "#uploadbtn" ).click(function() {
+
+	$("#submit").click(function () {
+		$("#submit").css("display", "none");
 		$("#upload").css("display", "inline-block");
 	});
-	
+
+	$("#submit_remote").click(function () {
+		$("#submit_remote").css("display", "none");
+		$("#upload_remote").css("display", "inline-block");
+	});
+
+	$(".delete_link").click(function () {
+		$(".successbox").css("display", "none");
+	})
 })(jQuery, window, document);
 
 function loadXMLDoc(url)
