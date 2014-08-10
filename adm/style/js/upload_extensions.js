@@ -12,6 +12,14 @@
 		$("#upload").css("display", "inline-block");
 	});
 
+<<<<<<< HEAD
+=======
+	$("#submit_remote").click(function () {
+		$("#submit_remote").css("display", "none");
+		$("#upload_remote").css("display", "inline-block");
+	});
+
+>>>>>>> origin/master
 	$(".delete_link").click(function () {
 		$(".successbox").css("display", "none");
 	})

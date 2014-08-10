@@ -5,6 +5,7 @@ h1 {position: relative;}
 .table1 th + th {text-align: center; width: 200px;}
 .table1 td + td {text-align: center;}
 
+<<<<<<< HEAD
 #ext_upload {float:left; width:48%; margin:0;}
 #fake_upload {width:80%; margin:0; clear:none;}
 #extupload {display: none;}
@@ -13,6 +14,14 @@ h1 {position: relative;}
 
 #upload {display:none; margin-left: 10px;}
 
+=======
+#ext_upload, #ext_upload_remote{width:45%; margin:0; clear:none;}
+#extupload, #extupload_remote{width:80%;}
+#ext_table{float:right; width:50%; margin-top:15px;}
+
+#upload, #upload_remote{display:none; margin-left: 10px;}
+
+>>>>>>> origin/master
 form fieldset {border-radius:0;}
 
 /* Extension details */

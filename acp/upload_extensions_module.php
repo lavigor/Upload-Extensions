@@ -73,6 +73,7 @@ class upload_extensions_module
 
 				$this->tpl_name = 'acp_ext_details';
 				break;
+<<<<<<< HEAD
 			
 			case 'upload':
 				if (strpos($request->variable('fake_upload', ''), 'ttp://'))
@@ -89,6 +90,18 @@ class upload_extensions_module
 				{
 					trigger_error($user->lang('EXT_UPLOAD_ERROR'));
 				}
+=======
+			case 'upload':
+			case 'upload_remote':
+				if (!is_writable($this->ext_dir))
+				{
+					trigger_error($user->lang('EXT_NOT_WRITABLE'));
+				}
+				if (!$this->upload_ext($action))
+				{
+					trigger_error($user->lang('EXT_UPLOAD_ERROR'));
+				}
+>>>>>>> origin/master
 				$this->list_available_exts($phpbb_extension_manager);
 				$template->assign_vars(array(
 					'U_ACTION'			=> $this->u_action,
@@ -97,7 +110,10 @@ class upload_extensions_module
 					'S_FORM_ENCTYPE'	=> ' enctype="multipart/form-data"',
 				));
 				break;
+<<<<<<< HEAD
 			
+=======
+>>>>>>> origin/master
 			case 'delete':
 				$ext_name = $request->variable('ext_name', '');
 				if ($ext_name != '')
@@ -125,9 +141,13 @@ class upload_extensions_module
 					}
 				}
 				break;
+<<<<<<< HEAD
 			
 			default:
 				$this->listzip();
+=======
+			default:
+>>>>>>> origin/master
 				$this->list_available_exts($phpbb_extension_manager);
 				$template->assign_vars(array(
 					'U_ACTION'			=> $this->u_action,
@@ -136,6 +156,7 @@ class upload_extensions_module
 					'S_FORM_ENCTYPE'	=> ' enctype="multipart/form-data"',
 				));
 				break;
+<<<<<<< HEAD
 		}
 	}
 	
@@ -171,6 +192,12 @@ class upload_extensions_module
 		}
 	}
 		
+=======
+		}
+	}
+	
+	
+>>>>>>> origin/master
 	function getComposer($dir)
 	{
 		global $composer;
@@ -237,11 +264,25 @@ class upload_extensions_module
 				$available_extension_meta_data[$name] = array(
 					'META_DISPLAY_NAME' => $md_manager->get_metadata('display-name'),
 					'META_VERSION' => $meta['version'],
-					'U_DETAILS'	=> $this->u_action . '&amp;action=delete&amp;ext_name=' . urlencode($name)
 				);
+
+				$force_update = $request->variable('versioncheck_force', false);
+				$updates = $this->version_check($md_manager, $force_update, !$force_update);
+
+				$available_extension_meta_data[$name]['S_UP_TO_DATE'] = empty($updates);
+				$available_extension_meta_data[$name]['S_VERSIONCHECK'] = true;
+				$available_extension_meta_data[$name]['U_VERSIONCHECK_FORCE'] = $this->u_action . '&amp;action=details&amp;versioncheck_force=1&amp;ext_name=' . urlencode($md_manager->get_metadata('name'));
 			}
 			catch(\phpbb\extension\exception $e)
 			{
+				$template->assign_block_vars('disabled', array(
+					'META_DISPLAY_NAME'		=> $user->lang('EXTENSION_INVALID_LIST', $name, $e),
+					'S_VERSIONCHECK'		=> false,
+				));
+			}
+			catch (\RuntimeException $e)
+			{
+				$available_extension_meta_data[$name]['S_VERSIONCHECK'] = false;
 			}
 		}
 
@@ -325,7 +366,11 @@ class upload_extensions_module
 
 		// Proceed with the upload
 		if ($action == 'upload') $file = $upload->form_upload('extupload');
+<<<<<<< HEAD
 		else $file = $upload->remote_upload($request->variable('fake_upload', ''));
+=======
+		else $file = $upload->remote_upload($request->variable('extupload_remote', ''));
+>>>>>>> origin/master
 
 		if (empty($file->filename))
 		{
@@ -370,6 +415,7 @@ class upload_extensions_module
 		if (strpos($destination, '/') === false)
 		{
 			trigger_error($user->lang['ACP_UPLOAD_EXT_ERROR_DEST'] . adm_back_link($this->u_action), E_USER_WARNING);
+<<<<<<< HEAD
 		}
 		$display_name = $json_a['extra']['display-name'];
 		if ($json_a['type'] != "phpbb-extension")
@@ -378,6 +424,16 @@ class upload_extensions_module
 			$file->remove();
 			trigger_error($user->lang['NOT_AN_EXTENSION'] . adm_back_link($this->u_action), E_USER_WARNING);
 		}
+=======
+		}
+		$display_name = $json_a['extra']['display-name'];
+		if ($json_a['type'] != "phpbb-extension")
+		{
+			$this->rrmdir($phpbb_root_path . 'ext/tmp');
+			$file->remove();
+			trigger_error($user->lang['NOT_AN_EXTENSION'] . adm_back_link($this->u_action), E_USER_WARNING);
+		}
+>>>>>>> origin/master
 		$source = substr($composery, 0, -14);
 		/* Delete the previous version of extension files - we're able to update them. */
 		if (is_dir($phpbb_root_path . 'ext/' . $destination))
