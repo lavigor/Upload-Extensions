@@ -12,46 +12,27 @@ namespace forumhulp\upload_extensions\acp;
 class upload_extensions_module
 {
 	public $u_action;
-	private $config;
-	private $user;
-	private $cache;
-	private $template;
-	private $request;
-	var $store_dir = '';
-	var $mods_dir = '';
+	var $ext_dir = '';
 	var $error = '';
-
 	function main($id, $mode)
 	{
-		global $config, $user, $cache, $template, $request, $phpbb_root_path, $phpbb_extension_manager;
-
-		$this->config = $config;
-		$this->user = $user;
-		$this->cache = $cache;
-		$this->template = $template;
-		$this->request = $request;
+		global $db, $config, $user, $cache, $template, $request, $phpbb_root_path, $phpbb_extension_manager, $phpbb_container;
 
 		$this->page_title = $user->lang['ACP_UPLOAD_EXT_TITLE'];
 		$this->tpl_name = 'acp_upload_extensions';
-		$this->store_dir = $phpbb_root_path . 'ext';
-		$this->mods_dir = $phpbb_root_path . 'ext';
+		$this->ext_dir = $phpbb_root_path . 'ext';
 
-		$action = request_var('action', '');
-
-		$file = request_var('file', '');
-		if ($file != '')
-		{
-			$string = file_get_contents($file);
-			echo substr($file, strrpos($file, '/') + 1) . '<br><br>'.  highlight_string($string, true);
-			exit;
-		}
+		// get any url vars
+		$action = $request->variable('action', '');
+		$mode = $request->variable('mode', '');
+		$id = $request->variable('i', '');
 
 		switch ($action)
 		{
 			case 'details':
 				$user->add_lang(array('install', 'acp/extensions', 'migrator'));
 				$ext_name = 'forumhulp/upload_extensions';
-				$md_manager = new \phpbb\extension\metadata_manager($ext_name, $config, $phpbb_extension_manager, $this->template, $user, $phpbb_root_path);
+				$md_manager = new \phpbb\extension\metadata_manager($ext_name, $config, $phpbb_extension_manager, $template, $user, $phpbb_root_path);
 				try
 				{
 					$this->metadata = $md_manager->get_metadata('all');
@@ -60,122 +41,97 @@ class upload_extensions_module
 				{
 					trigger_error($e, E_USER_WARNING);
 				}
-	
+
 				$md_manager->output_template_data();
-	
+
 				try
 				{
 					$updates_available = $this->version_check($md_manager, $request->variable('versioncheck_force', false));
-	
-					$this->template->assign_vars(array(
+
+					$template->assign_vars(array(
 						'S_UP_TO_DATE'		=> empty($updates_available),
 						'S_VERSIONCHECK'	=> true,
 						'UP_TO_DATE_MSG'	=> $user->lang(empty($updates_available) ? 'UP_TO_DATE' : 'NOT_UP_TO_DATE', $md_manager->get_metadata('display-name')),
 					));
-	
+
 					foreach ($updates_available as $branch => $version_data)
 					{
-						$this->template->assign_block_vars('updates_available', $version_data);
+						$template->assign_block_vars('updates_available', $version_data);
 					}
 				}
 				catch (\RuntimeException $e)
 				{
-					$this->template->assign_vars(array(
+					$template->assign_vars(array(
 						'S_VERSIONCHECK_STATUS'			=> $e->getCode(),
 						'VERSIONCHECK_FAIL_REASON'		=> ($e->getMessage() !== $user->lang('VERSIONCHECK_FAIL')) ? $e->getMessage() : '',
 					));
 				}
-	
-				$this->template->assign_vars(array(
+
+				$template->assign_vars(array(
 					'U_BACK'				=> $this->u_action . '&amp;action=list',
 				));
-	
+
 				$this->tpl_name = 'acp_ext_details';
-			break;
-			
+				break;
 			case 'upload':
-				if (!$this->upload_mod($action))
+			case 'upload_remote':
+				if (!is_writable($this->ext_dir))
 				{
-					// Do nothing.
+					trigger_error($user->lang('EXT_NOT_WRITABLE'));
 				}
-			break;
-			
+				if (!$this->upload_ext($action))
+				{
+					trigger_error($user->lang('EXT_UPLOAD_ERROR'));
+				}
+				$this->list_available_exts($phpbb_extension_manager);
+				$template->assign_vars(array(
+					'U_ACTION'			=> $this->u_action,
+					'U_UPLOAD'			=> $phpbb_root_path . 'adm/index.php?i=' . $id . '&amp;sid=' .$user->session_id . '&amp;mode=' . $mode . '&amp;action=upload',
+					'U_UPLOAD_REMOTE'	=> $phpbb_root_path . 'adm/index.php?i=' . $id . '&amp;sid=' .$user->session_id . '&amp;mode=' . $mode . '&amp;action=upload_remote',
+					'S_FORM_ENCTYPE'	=> ' enctype="multipart/form-data"',
+				));
+				break;
 			case 'delete':
-				if (request_var('ext_name', '') != '')
+				$ext_name = $request->variable('ext_name', '');
+				if ($ext_name != '')
 				{
 					if (confirm_box(true))
 					{
-						$dir = substr(request_var('ext_name', ''), 0, strpos(request_var('ext_name', ''), '/'));
+						$dir = substr($ext_name, 0, strpos($ext_name, '/'));
 						$extensions = sizeof(array_filter(glob($phpbb_root_path . 'ext/' . $dir . '/*'), 'is_dir'));
-						$dir = ($extensions == 1) ? $dir : substr(request_var('ext_name', ''), strpos(request_var('ext_name', '') + 1, '/'));
-						$this->rrmdir($phpbb_root_path . 'ext/' . $dir); 
-						if ($request->is_ajax())
+						$dir = ($extensions == 1) ? $dir : substr($ext_name, strpos($ext_name, '/') + 1);
+						$this->rrmdir($phpbb_root_path . 'ext/' . $dir);
+						if($request->is_ajax())
 						{
-							trigger_error('EXT_DELETE_SUCCESS');
+							trigger_error($user->lang('EXT_DELETE_SUCCESS'));
 						}
-					} else
-					{
-						confirm_box(false, $user->lang['CONFIRM_OPERATION'], build_hidden_fields(array(
+						else
+						{
+							redirect($phpbb_root_path . 'adm/index.php?i=' . $id . '&amp;sid=' .$user->session_id . '&amp;mode=' . $mode);
+						}
+					} else {
+						confirm_box(false, $user->lang('EXTENSION_DELETE_CONFIRM', $ext_name), build_hidden_fields(array(
 							'i'			=> $id,
 							'mode'		=> $mode,
 							'action'	=> $action,
-							))
-						);
+						)));
 					}
 				}
-			
+				break;
 			default:
-			
-				$this->listzip();
 				$this->list_available_exts($phpbb_extension_manager);
-			
-				if (!is_writable($this->mods_dir))
-				{
-					$template->assign_var('S_MODS_WRITABLE_WARN', true);
-				}
 				$template->assign_vars(array(
-					'DEFAULT'			=> true, 
-					'U_ACTION'			=> $this->u_action, 
-					'U_UPLOAD'			=> $this->u_action,/* . '&amp;action=upload', */
-					'S_FORM_ENCTYPE'	=> ' enctype="multipart/form-data"',));
-			break;
-		}
-	}
-
-	function listzip()
-	{
-		global $phpbb_root_path, $phpbb_container;
-		$zip_aray = array();
-		$ffs = scandir($phpbb_root_path . 'ext/');
-		foreach($ffs as $ff)
-		{
-			if ($ff != '.' && $ff != '..')
-			{
-				if (strpos($ff,'.zip')) 
-				{
-					$zip_aray[] = array(
-					'META_DISPLAY_NAME' => $ff,
-					'U_DETAILS'	=> $this->u_action . '&amp;action=upload&amp;ext_name=' . urlencode($ff)
-				);}
-			}
-		}
-		
-		$pagination = $phpbb_container->get('pagination');
-		$start		= request_var('start', 0);
-		$zip_count = sizeof($zip_aray);
-		$per_page = 10;
-		$base_url = $this->u_action;
-		$pagination->generate_template_pagination($base_url, 'pagination', 'start', $zip_count, $per_page, $start);
-		
-		uasort($zip_aray, array($this, 'sort_extension_meta_data_table'));
-		for($i = $start; $i < $zip_count && $i < $start + $per_page; $i++)
-		{
-			$this->template->assign_block_vars('zip', $zip_aray[$i]);
+					'U_ACTION'			=> $this->u_action,
+					'U_UPLOAD'			=> $phpbb_root_path . 'adm/index.php?i=' . $id . '&amp;sid=' .$user->session_id . '&amp;mode=' . $mode . '&amp;action=upload',
+					'U_UPLOAD_REMOTE'	=> $phpbb_root_path . 'adm/index.php?i=' . $id . '&amp;sid=' .$user->session_id . '&amp;mode=' . $mode . '&amp;action=upload_remote',
+					'S_FORM_ENCTYPE'	=> ' enctype="multipart/form-data"',
+				));
+				break;
 		}
 	}
 	
 	
-	function listFolderFiles($dir)
+	function getComposer($dir)
 	{
 		global $composer;
 		$ffs = scandir($dir);
@@ -186,13 +142,13 @@ class upload_extensions_module
 			{
 				if ($ff == 'composer.json') {$composer = $dir . '/' . $ff; break;}
 	
-				if(is_dir($dir.'/'.$ff)) $this->listFolderFiles($dir . '/' . $ff);	
+				if(is_dir($dir.'/'.$ff)) $this->getComposer($dir . '/' . $ff);	
 			}
 		}
 		return $composer;
 	}
-	
-   // Function to remove folders and files 
+
+    // Function to remove folders and files 
     function rrmdir($dir) 
 	{
         if (is_dir($dir)) 
@@ -218,88 +174,22 @@ class upload_extensions_module
         } else if (file_exists($src)) copy($src, $dst);
     }
 
-	function php_file_tree($directory, $display_name, $extensions = array()) 
-	{
-		$code = $this->user->lang['ACP_UPLOAD_EXT_CONT'] . $display_name . '<br /><br />';
-		if(substr($directory, -1) == '/' ) $directory = substr($directory, 0, strlen($directory) - 1);
-		$code .= $this->php_file_tree_dir($directory, $extensions);
-		return $code;
-	}
-
-	function php_file_tree_dir($directory, $extensions = array(), $first_call = true) 
-	{
-		if (function_exists('scandir')) $file = scandir($directory); else $file = php4_scandir($directory);
-		natcasesort($file);
-	
-		// Make directories first
-		$files = $dirs = array();
-		foreach($file as $this_file)
-		{
-			if (is_dir($directory . '/' . $this_file)) $dirs[] = $this_file; else $files[] = $this_file;
-		}
-		$file = array_merge($dirs, $files);
-	
-		// Filter unwanted extensions
-		if (!empty($extensions))
-		{
-			foreach(array_keys($file) as $key)
-			{
-				if (!is_dir($directory . '/' . $file[$key]))
-				{
-					$ext = substr($file[$key], strrpos($file[$key],  '.') + 1); 
-					if (!in_array($ext, $extensions)) unset($file[$key]);
-				}
-			}
-		}
-	
-		if (count($file) > 2)
-		{ // Use 2 instead of 0 to account for . and .. directories
-			$php_file_tree = '<ul';
-			if ($first_call) 
-			{
-				$php_file_tree .= ' class="php-file-tree"'; $first_call = false;
-			}
-			$php_file_tree .= '>';
-			foreach($file as $this_file)
-			{
-				if ($this_file != '.' && $this_file != '..' )
-				{
-					if (is_dir($directory . '/' . $this_file))
-					{
-						// Directory
-						$php_file_tree .= '<li class="pft-directory"><a href="#">' . htmlspecialchars($this_file) . '</a>';
-						$php_file_tree .= $this->php_file_tree_dir($directory . '/' . $this_file, $extensions, false);
-						$php_file_tree .= '</li>';
-					} else 
-					{
-						// File
-						// Get extension (prepend 'ext-' to prevent invalid classes from extensions that begin with numbers)
-						$ext = 'ext-' . substr($this_file, strrpos($this_file, '.') + 1); 
-						$link = $this->u_action . '&amp;file=' . $directory . '/' . urlencode($this_file); 
-						$php_file_tree .= '<li class="pft-file ' . strtolower($ext) . '"><a href="javascript:void(0)" onclick="loadXMLDoc(\''. $link . '\')" title="' . $this_file . '">' . htmlspecialchars($this_file) . '</a></li>';
-					}
-				}
-			}
-			$php_file_tree .= '</ul>';
-		}
-		return $php_file_tree;
-	}
-
 	/**
 	* Lists all the available extensions and dumps to the template
 	*
 	* @param  $phpbb_extension_manager     An instance of the extension manager
 	* @return null
 	*/
-	protected function list_available_exts(\phpbb\extension\manager $phpbb_extension_manager)
+	public function list_available_exts(\phpbb\extension\manager $phpbb_extension_manager)
 	{
+		global $template, $request, $user;
 		$uninstalled = array_diff_key($phpbb_extension_manager->all_available(), $phpbb_extension_manager->all_configured());
 
 		$available_extension_meta_data = array();
 
 		foreach ($uninstalled as $name => $location)
 		{
-			$md_manager = $phpbb_extension_manager->create_extension_metadata_manager($name, $this->template);
+			$md_manager = $phpbb_extension_manager->create_extension_metadata_manager($name, $template);
 
 			try
 			{
@@ -307,18 +197,35 @@ class upload_extensions_module
 				$available_extension_meta_data[$name] = array(
 					'META_DISPLAY_NAME' => $md_manager->get_metadata('display-name'),
 					'META_VERSION' => $meta['version'],
-					'U_DETAILS'	=> $this->u_action . '&amp;action=delete&amp;ext_name=' . urlencode($name)
 				);
+
+				$force_update = $request->variable('versioncheck_force', false);
+				$updates = $this->version_check($md_manager, $force_update, !$force_update);
+
+				$available_extension_meta_data[$name]['S_UP_TO_DATE'] = empty($updates);
+				$available_extension_meta_data[$name]['S_VERSIONCHECK'] = true;
+				$available_extension_meta_data[$name]['U_VERSIONCHECK_FORCE'] = $this->u_action . '&amp;action=details&amp;versioncheck_force=1&amp;ext_name=' . urlencode($md_manager->get_metadata('name'));
 			}
 			catch(\phpbb\extension\exception $e)
 			{
+				$template->assign_block_vars('disabled', array(
+					'META_DISPLAY_NAME'		=> $user->lang('EXTENSION_INVALID_LIST', $name, $e),
+					'S_VERSIONCHECK'		=> false,
+				));
+			}
+			catch (\RuntimeException $e)
+			{
+				$available_extension_meta_data[$name]['S_VERSIONCHECK'] = false;
 			}
 		}
 
 		uasort($available_extension_meta_data, array($this, 'sort_extension_meta_data_table'));
+
 		foreach ($available_extension_meta_data as $name => $block_vars)
 		{
-			$this->template->assign_block_vars('disabled', $block_vars);
+			$block_vars['U_DETAILS'] = $this->u_action . '&amp;action=delete&amp;ext_name=' . urlencode($name);
+
+			$template->assign_block_vars('disabled', $block_vars);
 		}
 	}
 
@@ -358,7 +265,7 @@ class upload_extensions_module
 
 		return $updates = $version_helper->get_suggested_updates($force_update, $force_cache);
 	}
-
+	
 	/**
 	 *
 	 * @package automod
@@ -366,41 +273,42 @@ class upload_extensions_module
 	 * @license http://opensource.org/licenses/gpl-2.0.php GNU Public License
 	 *
 	 */
-	function upload_mod($action)
+	function upload_ext($action)
 	{
 		global $phpbb_root_path, $phpEx, $template, $user, $request;
 
-		$can_upload = (@ini_get('file_uploads') == '0' || strtolower(@ini_get('file_uploads')) == 'off' || !@extension_loaded('zlib')) ? false : true;
+		//$can_upload = (@ini_get('file_uploads') == '0' || strtolower(@ini_get('file_uploads')) == 'off' || !@extension_loaded('zlib')) ? false : true;
 
 		$user->add_lang('posting');  // For error messages
 		include($phpbb_root_path . 'includes/functions_upload.' . $phpEx);
 		$upload = new \fileupload();
 		$upload->set_allowed_extensions(array('zip'));	// Only allow ZIP files
 
-		if (!is_writable($this->mods_dir))
+		if (!is_writable($this->ext_dir))
 		{
-			trigger_error($user->lang['MODS_NOT_WRITABLE'] . adm_back_link($this->u_action), E_USER_WARNING);
+			trigger_error($user->lang['EXT_NOT_WRITABLE'] . adm_back_link($this->u_action), E_USER_WARNING);
 		}
 
-		$upload_dir = $this->mods_dir;
+		$upload_dir = $this->ext_dir;
 
-		// Make sure the store/mods/ directory exists and if it doesn't, create it
-		if (!is_dir($this->mods_dir))
+		// Make sure the ext/ directory exists and if it doesn't, create it
+		if (!is_dir($this->ext_dir))
 		{
-			$this->recursive_mkdir($this->mods_dir);
+			$this->recursive_mkdir($this->ext_dir);
 		}
 
 		// Proceed with the upload
-		$file = $upload->form_upload('modupload');
+		if ($action == 'upload') $file = $upload->form_upload('extupload');
+		else $file = $upload->remote_upload($request->variable('extupload_remote', ''));
 
 		if (empty($file->filename))
 		{
-			trigger_error($user->lang['NO_UPLOAD_FILE'] . adm_back_link($this->u_action), E_USER_WARNING);
+			trigger_error((sizeof($file->error) ? implode('<br />', $file->error) : $user->lang['NO_UPLOAD_FILE']) . adm_back_link($this->u_action), E_USER_WARNING);
 		}
 		else if ($file->init_error || sizeof($file->error))
 		{
 			$file->remove();
-			trigger_error((sizeof($file->error) ? implode('<br />', $file->error) : $user->lang['MOD_UPLOAD_INIT_FAIL']) . adm_back_link($this->u_action), E_USER_WARNING);
+			trigger_error((sizeof($file->error) ? implode('<br />', $file->error) : $user->lang['EXT_UPLOAD_INIT_FAIL']) . adm_back_link($this->u_action), E_USER_WARNING);
 		}
 
 		$file->clean_filename('real');
@@ -413,57 +321,51 @@ class upload_extensions_module
 		}
 
 		include($phpbb_root_path . 'includes/functions_compress.' . $phpEx);
-		$mod_dir = $upload_dir . '/' . str_replace('.zip', '', $file->get('realname'));
+		$ext_dir = $upload_dir . '/' . str_replace('.zip', '', $file->get('realname'));
 		
 		$zip = new \ZipArchive;
 		$res = $zip->open($file->destination_file);
-		if ($res === true) 
-		{
-			$zip->extractTo($phpbb_root_path . 'ext/tmp');
-			$zip->close();
-			
-			$composery = $this->listFolderFiles($phpbb_root_path . 'ext/tmp'); 
-			
-			if ($composery)
-			{
-				$string = file_get_contents($composery);
-				$json_a = json_decode($string, true);
-				$destination = $json_a['name'];
-				if (strpos($destination, '/'))
-				{
-					$display_name = $json_a['extra']['display-name'];
-					$source = substr($composery, 0, -14);
-					$this->rcopy($source, $phpbb_root_path . 'ext/' . $destination);
-					$this->rrmdir($phpbb_root_path . 'ext/tmp');
-					
-					$template->assign_vars(array('UPLOAD' => 'Package ' . $display_name . ' uploaded.'));
-					
-					foreach ($json_a['authors'] as $author)
-					{
-						$template->assign_block_vars('authors', array(
-							'AUTHOR'	=> $author['name'],
-						));
-					}
-					
-					$template->assign_vars(array(
-						'FILETREE'	=> $this->php_file_tree($phpbb_root_path . 'ext/' . $destination, $display_name),
-						'S_UPLOADED'	=> $user->lang('EXTENSION_UPLOADED', $destination),
-						'S_ACTION'		=> $phpbb_root_path . '/adm/index.php?i=acp_extensions&amp;sid=' .$user->session_id . '&amp;mode=main&amp;action=enable_pre&amp;ext_name=' . urlencode($destination),
-						'S_ACTION_DELL'	=> $this->u_action . '&amp;action=delete&amp;ext_name=' . urlencode($destination),
-						'U_ACTION'		=> $this->u_action
-					));
-				} else
-				{
-					trigger_error($user->lang['ACP_UPLOAD_EXT_ERROR_DEST'] . adm_back_link($this->u_action), E_USER_WARNING);	
-				}
-			} else
-			{
-				trigger_error($user->lang['ACP_UPLOAD_EXT_ERROR_COMP'] . adm_back_link($this->u_action), E_USER_WARNING);
-			}
-		} else 
+		if ($res !== true) 
 		{
 			trigger_error($user->lang['ziperror'][$res] . adm_back_link($this->u_action), E_USER_WARNING);
 		}
+		$zip->extractTo($phpbb_root_path . 'ext/tmp');
+		$zip->close();
+			
+		$composery = $this->getComposer($phpbb_root_path . 'ext/tmp'); 
+			
+		if (!$composery)
+		{
+			trigger_error($user->lang['ACP_UPLOAD_EXT_ERROR_COMP'] . adm_back_link($this->u_action), E_USER_WARNING);
+		}
+		$string = file_get_contents($composery);
+		$json_a = json_decode($string, true);
+		$destination = $json_a['name'];
+		if (strpos($destination, '/') === false)
+		{
+			trigger_error($user->lang['ACP_UPLOAD_EXT_ERROR_DEST'] . adm_back_link($this->u_action), E_USER_WARNING);
+		}
+		$display_name = $json_a['extra']['display-name'];
+		if ($json_a['type'] != "phpbb-extension")
+		{
+			$this->rrmdir($phpbb_root_path . 'ext/tmp');
+			$file->remove();
+			trigger_error($user->lang['NOT_AN_EXTENSION'] . adm_back_link($this->u_action), E_USER_WARNING);
+		}
+		$source = substr($composery, 0, -14);
+		/* Delete the previous version of extension files - we're able to update them. */
+		if (is_dir($phpbb_root_path . 'ext/' . $destination))
+		{
+			$this->rrmdir($phpbb_root_path . 'ext/' . $destination);
+		}
+		$this->rcopy($source, $phpbb_root_path . 'ext/' . $destination);
+		$this->rrmdir($phpbb_root_path . 'ext/tmp');
+					
+		$template->assign_vars(array(
+			'S_UPLOADED'	=> $user->lang('EXTENSION_UPLOADED', $display_name),
+			'S_ACTION'		=> $phpbb_root_path . 'adm/index.php?i=acp_extensions&amp;sid=' .$user->session_id . '&amp;mode=main&amp;action=enable_pre&amp;ext_name=' . urlencode($destination),
+			'U_ACTION'		=> $this->u_action
+		));
 
 		// Remove the uploaded archive file
 		$file->remove();

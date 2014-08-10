@@ -28,7 +28,7 @@ class install_upload_extensions extends \phpbb\db\migration\migration
 			array('module.add', array(
 				'acp', 'ACP_EXTENSION_MANAGEMENT', array(
 					'module_basename'	=> '\forumhulp\upload_extensions\acp\upload_extensions_module',
-					'auth'				=> 'ext_forumhulp/upload_extensions',
+					'auth'				=> 'ext_forumhulp/upload_extensions && acl_a_extensions',
 					'modes'				=> array('main'),
 				),
 			)),

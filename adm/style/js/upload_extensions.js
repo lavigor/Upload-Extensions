@@ -6,11 +6,20 @@
 	    width: '650px',
 		height: '600px'
 	});
-	
-	$( "#uploadbtn" ).click(function() {
+
+	$("#submit").click(function () {
+		$("#submit").css("display", "none");
 		$("#upload").css("display", "inline-block");
 	});
-	
+
+	$("#submit_remote").click(function () {
+		$("#submit_remote").css("display", "none");
+		$("#upload_remote").css("display", "inline-block");
+	});
+
+	$(".delete_link").click(function () {
+		$(".successbox").css("display", "none");
+	})
 })(jQuery, window, document);
 
 function loadXMLDoc(url)

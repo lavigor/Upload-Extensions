@@ -20,7 +20,7 @@ class upload_extensions_info
             'modes'        => array(
                 'main'		=> array(
             								'title' => 'ACP_UPLOAD_EXT_CONFIG_TITLE',
-            								'auth' => 'ext_forumhulp/upload_extensions',
+            								'auth' => 'ext_forumhulp/upload_extensions && acl_a_extensions',
             								'cat' => array('ACP_EXTENSION_MANAGEMENT')
             							),
             ),
