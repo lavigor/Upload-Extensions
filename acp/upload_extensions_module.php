@@ -105,6 +105,10 @@ class upload_extensions_module
 						{
 							trigger_error($user->lang('EXT_DELETE_SUCCESS'));
 						}
+						else
+						{
+							redirect($phpbb_root_path . 'adm/index.php?i=' . $id . '&amp;sid=' .$user->session_id . '&amp;mode=' . $mode);
+						}
 					} else {
 						confirm_box(false, $user->lang('EXTENSION_DELETE_CONFIRM', $ext_name), build_hidden_fields(array(
 							'i'			=> $id,
