@@ -67,7 +67,7 @@
         </table>
         <!-- ENDIF -->
         
-        <form action="{U_UPLOAD}" method="post" id="ext_upload" autocomplete="off" {S_FORM_ENCTYPE} data-ajax="true">
+        <form action="{U_UPLOAD}" method="post" id="ext_upload" autocomplete="off" {S_FORM_ENCTYPE} data-ajax="refresh">
             <fieldset>
                 <legend>{L_EXTENSION_UPLOAD}</legend>
                 <dl>
@@ -81,6 +81,7 @@
                     {S_HIDDEN_FIELDS}
                     <br />
                     <br />
+                    <input type="checkbox" name="keepext" title="Keep extension" />
                     <input class="button1" type="submit" name="submit" value="{L_UPLOAD}" id="submit" />
                     <i id="upload" class="fa fa-spinner fa-3x fa-spin"></i>
                 </dl>

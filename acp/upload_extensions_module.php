@@ -410,8 +410,10 @@ class upload_extensions_module
 		));
 
 		// Remove the uploaded archive file
-		$file->remove();
-
+		if (!isset($_POST['keepext']))
+		{
+			$file->remove();
+		}
 		return true;
 	}
 
