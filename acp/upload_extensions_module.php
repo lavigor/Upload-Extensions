@@ -402,11 +402,14 @@ class upload_extensions_module
 			));
 		}
 					
+		$string = file_get_contents($phpbb_root_path . 'ext/' . $destination . '/README.md');
 		$template->assign_vars(array(
 			'S_UPLOADED'	=> $user->lang('EXTENSION_UPLOADED', $display_name),
 			'FILETREE'		=> $this->php_file_tree($phpbb_root_path . 'ext/' . $destination, $display_name),
 			'S_ACTION'		=> $phpbb_root_path . 'adm/index.php?i=acp_extensions&amp;sid=' .$user->session_id . '&amp;mode=main&amp;action=enable_pre&amp;ext_name=' . urlencode($destination),
-			'U_ACTION'		=> $this->u_action
+			'U_ACTION'		=> $this->u_action,
+			'FILENAME'		=> ($string !== false) ? 'README.md' : '',
+			'CONTENT'		=> ($string !== false) ?  highlight_string($string, true): ''
 		));
 
 		// Remove the uploaded archive file
@@ -419,7 +422,8 @@ class upload_extensions_module
 
 	function php_file_tree($directory, $display_name, $extensions = array()) 
 	{
-		$code = ''; //$this->user->lang['ACP_UPLOAD_EXT_CONT'] . $display_name . '<br /><br />';
+		global $user;
+		$code = $user->lang('ACP_UPLOAD_EXT_CONT', $display_name) . '<br /><br />';
 		if(substr($directory, -1) == '/' ) $directory = substr($directory, 0, strlen($directory) - 1);
 		$code .= $this->php_file_tree_dir($directory, $extensions);
 		return $code;

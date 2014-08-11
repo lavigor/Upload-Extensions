@@ -36,7 +36,7 @@ $lang = array_merge($lang, array(
 	'EXTENSIONS_AVAILABLE'				=> 'Available extensions',
 	'EXTENSION_INVALID_LIST'			=> 'Extension list',
 	'EXTENSION_UPLOADED_ENABLE'			=> 'Enable the uploaded extension',
-	'ACP_UPLOAD_EXT_UNPACK'			=> 'Unpack extension',
+	'ACP_UPLOAD_EXT_UNPACK'				=> 'Unpack extension',
 
 	'EXTENSION_DELETE'					=> 'Delete extension',
 	'EXTENSION_DELETE_CONFIRM'			=> 'Are you sure that you want to delete the “%s” extension?',
@@ -60,5 +60,6 @@ $lang = array_merge($lang, array(
 	),
 	
 	'ZIP_UPLOADED'			=> 'Extension zips already uploaded.',
+	'ACP_UPLOAD_EXT_CONT'	=> 'Content of package: %s'
 
 ));

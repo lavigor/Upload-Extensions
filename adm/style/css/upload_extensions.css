@@ -19,7 +19,7 @@ form fieldset {border-radius:0;}
 .seminbtn hover {border: 1px solid #BC2A4D;background: #EFEFEF url("/adm/images/bg_button.gif") repeat bottom;color: #bc2a4d;text-decoration:none;}
 .seminbtn a {text-decoration:none;}
 
-#filecontent {display:none;float:right; width:55%; height:420px; overflow:auto; border: 1px solid #CCCFD3; padding:5px; white-space:nowrap; font-size:9px;}
+#filecontent {float:right; width:55%; height:420px; overflow:auto; border: 1px solid #CCCFD3; padding:5px; white-space:nowrap; font-size:9px; background-color:#F7F7F7}
 
 .php-file-tree {
 /*	font-family: Georgia;
