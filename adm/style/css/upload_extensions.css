@@ -6,12 +6,79 @@ h1 {position: relative;}
 .table1 td + td {text-align: center;}
 
 #ext_upload {float:left; width:100%; margin:0;}
-#fake_upload {width:80%; margin:0; clear:none;}
-#extupload {display: none;}
+#remote_upload {width:80%; margin:0; clear:none;}
 
-#ext_table{float:right; width:100%;}
+#extupload {width:80%; margin-top:5px;}
 
-#upload {display:none; margin-left: 10px;}
+#ext_table{float:right; width:100%; margin-top:16px;}
+
+#upload {display:none; margin: 50px 0; padding: 0; width: 100%; text-align: center;}
+
+#uploaded_ok {
+    display: inline-block;
+    padding: 5px 5px;
+    margin-right: 15px;
+    border-radius: 100%;
+    color: #edfbf7;
+    font-weight: bold;
+    font-size: 1em;
+    background: #75a875;
+    background: -moz-linear-gradient(top, #92d992 0%, #228822 100%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #92d992), color-stop(100%, #228822));
+    background: -webkit-linear-gradient(top, #92d992 0%, #228822 100%);
+    background: -o-linear-gradient(top, #92d992 0%, #228822 100%);
+    background: -ms-linear-gradient(top, #92d992 0%, #228822 100%);
+    background: linear-gradient(to bottom, #92d992 0%, #228822 100%);
+}
+
+#enable_uploaded {
+    display: inline-block;
+    float: right;
+    padding: 6px 15px;
+    border-radius: 15px;
+    color: #edfbf7;
+    font-weight: bold;
+    font-size: 1.1em;
+    text-decoration: none;
+    background: #75a875;
+    background: -moz-linear-gradient(top, #92d992 0%, #228822 100%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #92d992), color-stop(100%, #228822));
+    background: -webkit-linear-gradient(top, #92d992 0%, #228822 100%);
+    background: -o-linear-gradient(top, #92d992 0%, #228822 100%);
+    background: -ms-linear-gradient(top, #92d992 0%, #228822 100%);
+    background: linear-gradient(to bottom, #92d992 0%, #228822 100%);
+}
+#enable_uploaded:hover {
+    display: inline-block;
+    float: right;
+    padding: 6px 15px;
+    border-radius: 15px;
+    color: #edfbf7;
+    font-weight: bold;
+    font-size: 1.1em;
+    background: #228822;
+    background: -moz-linear-gradient(top, #228822 0%, #92d992 100%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #228822), color-stop(100%, #92d992));
+    background: -webkit-linear-gradient(top, #228822 0%, #92d992 100%);
+    background: -o-linear-gradient(top, #228822 0%, #92d992 100%);
+    background: -ms-linear-gradient(top, #228822 0%, #92d992 100%);
+    background: linear-gradient(to bottom, #228822 0%, #92d992 100%);
+}
+
+#back_to_upload {display:block; margin-bottom:15px;}
+
+#filetree {display: none; min-height: 450px; border: 1px solid #CCCFD3; background-color: #F9F9F9; padding: 10px; margin-top: 15px;}
+#markdown {border: 1px solid #CCCFD3; background-color: #F9F9F9; padding: 10px 30px; margin-top: 15px;}
+
+#show_filetree, #hide_filetree {
+    float: right;
+    color: #105289;
+    cursor: pointer;
+}
+#show_filetree:hover, #hide_filetree:hover {
+    color: #bc2a4d;
+    text-decoration: underline;
+}
 
 form fieldset {border-radius:0;}
 
@@ -19,7 +86,7 @@ form fieldset {border-radius:0;}
 .seminbtn hover {border: 1px solid #BC2A4D;background: #EFEFEF url("/adm/images/bg_button.gif") repeat bottom;color: #bc2a4d;text-decoration:none;}
 .seminbtn a {text-decoration:none;}
 
-#filecontent {float:right; width:55%; height:420px; overflow:auto; border: 1px solid #CCCFD3; padding:5px; white-space:nowrap; font-size:9px; background-color:#F7F7F7}
+#filecontent {float:right; width:55%; height:420px; overflow:auto; border: 1px solid #CCCFD3; padding:5px; white-space:nowrap; font-size:9px; background-color:#F7F7F7;}
 
 .php-file-tree {
 /*	font-family: Georgia;

@@ -7,14 +7,26 @@
 		height: '600px'
 	});
 
+	/* For noscript compatibility we do it here instead of css file */
+	$("#extupload").css("display", "none");
+	$("#button_upload").css("display", "inline-block");
+
 	$("#submit").click(function () {
-		$("#submit").css("display", "none");
-		$("#upload").css("display", "inline-block");
+		$("#ext_upload_content").css("display", "none");
+		$("#upload").css("display", "block");
 	});
 
-	$(".delete_link").click(function () {
-		$(".successbox").css("display", "none");
-	})
+	$("#show_filetree").click(function () {
+		$("#show_filetree").css("display", "none");
+		$("#hide_filetree").css("display", "block");
+		$("#filetree").css("display", "block");
+	});
+
+	$("#hide_filetree").click(function () {
+		$("#hide_filetree").css("display", "none");
+		$("#show_filetree").css("display", "block");
+		$("#filetree").css("display", "none");
+	});
 })(jQuery, window, document);
 
 function browseFile() 
@@ -24,7 +36,7 @@ function browseFile()
 
 function setFileName() 
 {
-	document.getElementById('fake_upload').value = document.getElementById("extupload").files[0].name;
+	document.getElementById('remote_upload').value = document.getElementById("extupload").files[0].name;
 }
 
 function loadXMLDoc(url)
