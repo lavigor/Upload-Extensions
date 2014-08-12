@@ -19,6 +19,7 @@
 	$("#show_filetree").click(function () {
 		$("#show_filetree").css("display", "none");
 		$("#hide_filetree").css("display", "block");
+		$("#markdown").css("display", "none");
 		$("#filetree").css("display", "block");
 	});
 
@@ -26,6 +27,7 @@
 		$("#hide_filetree").css("display", "none");
 		$("#show_filetree").css("display", "block");
 		$("#filetree").css("display", "none");
+		$("#markdown").css("display", "block");
 	});
 })(jQuery, window, document);
 
